@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils import timezone
 
 
@@ -116,9 +118,9 @@ class ApprovalRequest(models.Model):
     ]
 
     request_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
-    content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
-    content_object = models.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='approval_requests')
     status = models.CharField(max_length=20, default='pending')

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Employee, Evaluation, Bono, ApprovalRequest
+from evaluations.models import Employee, Evaluation, Bono, ApprovalRequest
 
 
 class UserSerializer(serializers.ModelSerializer):
