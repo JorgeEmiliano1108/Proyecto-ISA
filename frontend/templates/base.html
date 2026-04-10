@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ISA - Sistema de Gestión{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --isa-blue: #0066CC;
+            --isa-dark-blue: #004C99;
+            --isa-light-blue: #E6F2FF;
+        }
+        .sidebar {
+            background: var(--isa-blue);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            border-radius: 5px;
+            margin: 2px 0;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: var(--isa-dark-blue);
+            color: white;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .top-bar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .dropdown-item:hover {
+            background: var(--isa-light-blue);
+            color: var(--isa-blue);
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        .card-header {
+            background: white;
+            border-bottom: 2px solid var(--isa-light-blue);
+            font-weight: 600;
+            color: var(--isa-blue);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3 text-center border-bottom border-secondary">
+                    <h4 class="mb-0"><i class="bi bi-building"></i> ISA</h4>
+                    <small>Sistema de Gestión</small>
+                </div>
+                <nav class="nav flex-column p-2">
+                    <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="bi bi-grid-1x2"></i> Dashboard
+                    </a>
+                    
+                    <!-- Menú desplegable -->
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-menu-button-wide"></i> Menú
+                        </a>
+                        <ul class="dropdown-menu bg-dark">
+                            <li><a class="dropdown-item text-white" href="{% url 'evaluaciones' %}">
+                                <i class="bi bi-clipboard-check"></i> Evaluaciones
+                            </a></li>
+                            <li><a class="dropdown-item text-white" href="{% url 'aprobaciones' %}">
+                                <i class="bi bi-check-circle"></i> Aprobaciones
+                            </a></li>
+                            <li><a class="dropdown-item text-white" href="{% url 'reportes' %}">
+                                <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                            </a></li>
+                            <li><a class="dropdown-item text-white" href="{% url 'bonos' %}">
+                                <i class="bi bi-gift"></i> Bonos
+                            </a></li>
+                            <li><a class="dropdown-item text-white" href="{% url 'usuarios' %}">
+                                <i class="bi bi-people"></i> Usuarios
+                            </a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+            
+            <!-- Contenido principal -->
+            <div class="col-md-10 p-0">
+                <!-- Top Bar -->
+                <div class="top-bar p-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-secondary">{% block page_title %}Dashboard{% endblock %}</h5>
+                    <span class="badge bg-primary">Administrador</span>
+                </div>
+                
+                <!-- Contenido -->
+                <div class="p-4">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

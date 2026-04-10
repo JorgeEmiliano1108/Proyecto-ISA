@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}ISA - Reportes{% endblock %}
+
+{% block page_title %}Reportes{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-file-earmark-bar-graph"></i> Generar Reportes</span>
+                <button class="btn btn-primary btn-sm">
+                    <i class="bi bi-download"></i> Exportar PDF
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people fs-1 text-primary"></i>
+                                <h6 class="mt-2">Usuarios por Rol</h6>
+                                <button class="btn btn-sm btn-outline-primary mt-2">Ver</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clipboard-check fs-1 text-success"></i>
+                                <h6 class="mt-2">Evaluaciones</h6>
+                                <button class="btn btn-sm btn-outline-primary mt-2">Ver</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-gift fs-1 text-warning"></i>
+                                <h6 class="mt-2">Bonos Otorgados</h6>
+                                <button class="btn btn-sm btn-outline-primary mt-2">Ver</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

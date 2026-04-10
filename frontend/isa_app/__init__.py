@@ -1,0 +1,1 @@
+default_app_config = 'isa_app.apps.IsaAppConfig'
