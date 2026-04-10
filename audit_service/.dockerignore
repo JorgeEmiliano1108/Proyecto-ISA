@@ -1,0 +1,39 @@
+# .dockerignore
+
+# Control de Versiones
+.git/
+.gitignore
+
+# Entornos virtuales locales (Forzamos a que Docker instale los suyos limpios)
+.venv/
+venv/
+env/
+
+# Variables de entorno locales 
+.env
+.env.*
+
+# Archivos compilados y caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.ruff_cache/
+
+# Pruebas y herramientas de desarrollo 
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+
+# Documentación o archivos innecesarios para la ejecución
+README.md
+docs/
+*.md
+
+# OS
+.DS_Store

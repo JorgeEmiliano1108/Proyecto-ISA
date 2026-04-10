@@ -1,0 +1,36 @@
+# Entornos Virtuales 
+.venv/
+venv/
+env/
+
+# Variables de Entorno 
+.env
+.env.local
+.env.*
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Pruebas y Cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# IDEs y Editores de código
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Base de datos local 
+*.sqlite3
+*.db
+
+# Docker y OS
+.DS_Store
+Thumbs.db
