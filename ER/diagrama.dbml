@@ -1,0 +1,113 @@
+// ==========================================
+// PROYECTO: ISA CORPORATIVO (Evaluación 2025)
+// VERSIÓN: 1.1.0
+// ==========================================
+
+// --- 1. CATÁLOGOS ---
+Table cat_roles {
+  id SERIAL [pk]
+  nombre varchar(50) [unique, not null]
+  nivel_aprobacion int [note: 'Jerarquía para aprobación']
+  activo boolean [default: true]
+}
+
+Table cat_departamentos {
+  id SERIAL [pk]
+  nombre varchar(100) [unique, not null]
+  activo boolean [default: true]
+}
+
+Table cat_competencias {
+  id SERIAL [pk]
+  nombre varchar(100) [not null]
+  descripcion text
+  activo boolean [default: true]
+}
+
+Table cat_periodos {
+  id SERIAL [pk]
+  nombre varchar(50) [unique, not null] // Ej: 'Anual 2025'
+  activo boolean [default: true]
+}
+
+// --- 2. SEGURIDAD ---
+Table usuarios {
+  id UUID [pk, default: `gen_random_uuid()`]
+  username varchar(50) [unique, not null]
+  rol_id int [ref: > cat_roles.id]
+  departamento_id int [ref: > cat_departamentos.id]
+  manager_id UUID [ref: > usuarios.id]
+  fecha_registro timestamp [default: `now()`]
+}
+
+// --- 3. TRANSACCIONAL (CABECERA) ---
+Table evaluaciones {
+  id UUID [pk, default: `gen_random_uuid()`]
+  evaluado_id UUID [ref: > usuarios.id]
+  evaluador_id UUID [ref: > usuarios.id]
+  periodo_id int [ref: > cat_periodos.id] // <--- NUEVA RELACIÓN
+  estado varchar(50) [default: 'DRAFT']
+  calificacion_global decimal(3,2) [note: 'Nota final 1-5'] // <--- NUEVO CAMPO
+  logros_previos text
+  comentarios_evaluador text
+  comentarios_evaluado text
+  fecha_creacion timestamp [default: `now()`]
+  fecha_actualizacion timestamp [default: `now()`]
+  fecha_ultimo_recordatorio timestamp
+}
+
+// --- 4. TRANSACCIONAL (DETALLES) ---
+Table competencias_detalle {
+  id UUID [pk, default: `gen_random_uuid()`]
+  evaluacion_id UUID [ref: > evaluaciones.id]
+  competencia_id int [ref: > cat_competencias.id]
+  calificacion int [note: 'Check 1-5']
+  comentario text [not null]
+}
+
+Table objetivos {
+  id UUID [pk, default: `gen_random_uuid()`]
+  evaluacion_id UUID [ref: > evaluaciones.id]
+  descripcion text [not null]
+}
+
+// --- 5. AUDITORÍA Y FIRMAS ---
+Table historial_estados {
+  id UUID [pk, default: `gen_random_uuid()`]
+  evaluacion_id UUID [ref: > evaluaciones.id]
+  estado_anterior varchar(50)
+  estado_nuevo varchar(50)
+  usuario_id UUID [ref: > usuarios.id]
+  comentario text
+  fecha timestamp [default: `now()`]
+}
+
+Table aprobaciones {
+  id UUID [pk, default: `gen_random_uuid()`]
+  evaluacion_id UUID [ref: > evaluaciones.id]
+  rol_id int [ref: > cat_roles.id]
+  usuario_id UUID [ref: > usuarios.id]
+  firma_digital_base64 text [note: 'Canvas image']
+  ip_address varchar(45)
+  fecha_firma timestamp [default: `now()`]
+}
+
+Table logs_sistema {
+  id UUID [pk, default: `gen_random_uuid()`]
+  usuario_id UUID [ref: > usuarios.id]
+  accion varchar(50)
+  ip_address varchar(45)
+  detalle text
+  fecha timestamp [default: `now()`]
+}
+
+// --- 6. FINANZAS ---
+Table bonos {
+  id UUID [pk, default: `gen_random_uuid()`]
+  evaluacion_id UUID [ref: > evaluaciones.id]
+  salario_base_snapshot decimal(12,2)
+  impacto_ebitda_logrado decimal(5,2)
+  performance_index decimal(5,2)
+  monto_final_bono decimal(12,2)
+  fecha_calculo timestamp [default: `now()`]
+}

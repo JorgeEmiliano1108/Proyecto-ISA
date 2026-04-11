@@ -1,0 +1,324 @@
+{
+  "version": "1.0.0",
+  "darkMode": true,
+  "gridEnabling": true,
+  "detailLevel": "All",
+  "tablePositions": [
+    {
+      "name": "cat_roles",
+      "schemaName": "public",
+      "x": 0,
+      "y": 50
+    },
+    {
+      "name": "cat_departamentos",
+      "schemaName": "public",
+      "x": 294.30029296875,
+      "y": 50
+    },
+    {
+      "name": "cat_competencias",
+      "schemaName": "public",
+      "x": 644.1298828125,
+      "y": 50
+    },
+    {
+      "name": "cat_periodos",
+      "schemaName": "public",
+      "x": 921.29833984375,
+      "y": 50
+    },
+    {
+      "name": "usuarios",
+      "schemaName": "public",
+      "x": 0,
+      "y": 260
+    },
+    {
+      "name": "evaluaciones",
+      "schemaName": "public",
+      "x": 294.30029296875,
+      "y": 228
+    },
+    {
+      "name": "competencias_detalle",
+      "schemaName": "public",
+      "x": 644.1298828125,
+      "y": 260
+    },
+    {
+      "name": "objetivos",
+      "schemaName": "public",
+      "x": 921.29833984375,
+      "y": 228
+    },
+    {
+      "name": "historial_estados",
+      "schemaName": "public",
+      "x": 0,
+      "y": 534
+    },
+    {
+      "name": "aprobaciones",
+      "schemaName": "public",
+      "x": 294.30029296875,
+      "y": 694
+    },
+    {
+      "name": "logs_sistema",
+      "schemaName": "public",
+      "x": 644.1298828125,
+      "y": 502
+    },
+    {
+      "name": "bonos",
+      "schemaName": "public",
+      "x": 921.29833984375,
+      "y": 406
+    }
+  ],
+  "tableGroupCollapseStates": [],
+  "stickyNoteLayouts": [],
+  "referencePaths": [
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "cat_roles",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "rol_id"
+      ],
+      "secondTableName": "usuarios",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "cat_departamentos",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "departamento_id"
+      ],
+      "secondTableName": "usuarios",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "usuarios",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "manager_id"
+      ],
+      "secondTableName": "usuarios",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "usuarios",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluado_id"
+      ],
+      "secondTableName": "evaluaciones",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "usuarios",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluador_id"
+      ],
+      "secondTableName": "evaluaciones",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "cat_periodos",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "periodo_id"
+      ],
+      "secondTableName": "evaluaciones",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "evaluaciones",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluacion_id"
+      ],
+      "secondTableName": "competencias_detalle",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "cat_competencias",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "competencia_id"
+      ],
+      "secondTableName": "competencias_detalle",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "evaluaciones",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluacion_id"
+      ],
+      "secondTableName": "objetivos",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "evaluaciones",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluacion_id"
+      ],
+      "secondTableName": "historial_estados",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "usuarios",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "usuario_id"
+      ],
+      "secondTableName": "historial_estados",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "evaluaciones",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluacion_id"
+      ],
+      "secondTableName": "aprobaciones",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "cat_roles",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "rol_id"
+      ],
+      "secondTableName": "aprobaciones",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "usuarios",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "usuario_id"
+      ],
+      "secondTableName": "aprobaciones",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "usuarios",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "usuario_id"
+      ],
+      "secondTableName": "logs_sistema",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "evaluaciones",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "evaluacion_id"
+      ],
+      "secondTableName": "bonos",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    }
+  ]
+}
