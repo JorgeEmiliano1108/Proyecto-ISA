@@ -25,6 +25,9 @@ services:
       - REDIS_SERVER=redis_audit
       - REDIS_PORT=6379
       - SECRET_KEY=dev_secret_key_123
+      # CORRECCIÓN: Apunta al nombre del servicio
+      - OLLAMA_SERVER=ollama
+      - OLLAMA_PORT=11434
     depends_on:
       postgres_audit:
         condition: service_healthy
@@ -62,12 +65,11 @@ services:
       retries: 5
 
   # El Cerebro Local (Ollama)
-
   ollama:
     image: ollama/ollama:latest
     container_name: ollama_ai
     ports:
-      - "11434:11434"
+      - "11435:11434"
     volumes:
       - ollama_models:/root/.ollama
     # Comando para descargar el modelo automáticamente si no existe al arrancar
@@ -78,8 +80,7 @@ services:
       ollama run phi3 &
       wait"
 
- #WORKER ASINCRONO
-
+  # WORKER ASINCRONO
   process_validation_worker:
     build:
       context: .
@@ -98,7 +99,9 @@ services:
       - POSTGRES_DB=audit_db
       - REDIS_SERVER=redis_audit
       - REDIS_PORT=6379
-      - SECRET_KEY=dev_secret_key_123        
+      - SECRET_KEY=dev_secret_key_123 
+      - OLLAMA_SERVER=ollama
+      - OLLAMA_PORT=11434       
     depends_on:
       redis_audit:
         condition: service_healthy

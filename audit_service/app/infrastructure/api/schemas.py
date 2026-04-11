@@ -9,8 +9,9 @@ class AuditLogCreateRequest(BaseModel):
     Payload esperado cuando un microservicio quiere registrar un evento.
     El actor_id y la ip_address no se piden aquí, se extraen del token JWT 
     y de los headers HTTP por seguridad.
-    """
-    model_config = ConfigDict(strict=True, extra="forbid")
+    """ 
+    
+    model_config = ConfigDict(extra="forbid")
 
     action: str = Field(..., min_length=3, max_length=50, example="STATE_TRANSITION")
     resource_id: Optional[UUID] = Field(None, description="ID del recurso afectado")

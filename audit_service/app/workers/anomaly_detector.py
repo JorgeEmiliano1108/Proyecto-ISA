@@ -14,11 +14,9 @@ from app.infrastructure.messaging.publisher import RedisEventPublisher # Para re
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ProcessValidationWorker")
 
-OLLAMA_URL = "http://ollama:11434/api/generate" # Asumiendo que Ollama correrá en Docker
-
+OLLAMA_URL = settings.OLLAMA_URL 
 
 # Prompt Engineering Estricto para Modelos Pequeños (phi-3)
-
 SYSTEM_PROMPT = """Eres un auditor de cumplimiento de Recursos Humanos estricto.
 Tu trabajo es analizar registros de evaluación de desempeño y detectar anomalías lógicas, sesgos, lenguaje inapropiado o falta de congruencia.
 DEBES RESPONDER ÚNICA Y EXCLUSIVAMENTE CON UN OBJETO JSON VÁLIDO. No agregues texto introductorio ni explicaciones fuera del JSON.

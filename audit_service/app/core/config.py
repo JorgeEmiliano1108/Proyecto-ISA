@@ -9,24 +9,21 @@ class Settings(BaseSettings):
     Se alimenta de las variables de entorno o del archivo .env.
     Pydantic v2 en strict mode validará los tipos en tiempo de arranque.
     """
-    
-    # ---------------------------------------------------------
-    # 1. Metadatos del Entorno y API
-    # ---------------------------------------------------------
+
+    # Metadatos del Entorno y API
+   
     PROJECT_NAME: str = "Audit & Logging Service"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: Literal["development", "staging", "production"] = "development"
     
-    # ---------------------------------------------------------
-    # 2. Seguridad Criptográfica (OWASP)
-    # ---------------------------------------------------------
-    # SecretStr evita que el valor se filtre si se hace print(settings) en los logs.
-    # Esta llave se usa en security.py para el HMAC (Tamper-Evidence).
+
+    # Seguridad Criptográfica (OWASP)
+    
     SECRET_KEY: SecretStr 
 
-    
+   
     # Base de Datos (PostgreSQL async)
-
+    
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: SecretStr
@@ -36,17 +33,13 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        """
-        Construye la URI de conexión de forma segura utilizando el driver asíncrono.
-        """
-        # Extraemos el string real del SecretStr solo en el momento de la conexión
+        """Construye la URI de conexión de forma segura utilizando el driver asíncrono."""
         password = self.POSTGRES_PASSWORD.get_secret_value()
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{password}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-
+   
     # Mensajería / Caché (Redis)
 
-    # Necesario para publicar los eventos asíncronos que consumirá la IA
     REDIS_SERVER: str
     REDIS_PORT: int = 6379
 
@@ -56,14 +49,22 @@ class Settings(BaseSettings):
         return f"redis://{self.REDIS_SERVER}:{self.REDIS_PORT}/0"
 
    
-    # Configuración de Pydantic
+    # Inteligencia Artificial (Ollama)
+ 
+    OLLAMA_SERVER: str = "ollama"
+    OLLAMA_PORT: int = 11434
 
+    @computed_field
+    @property
+    def OLLAMA_URL(self) -> str:
+        return f"http://{self.OLLAMA_SERVER}:{self.OLLAMA_PORT}/api/generate"
+
+    # Configuración de Pydantic
     model_config = SettingsConfigDict(
         env_file=".env",
         env_ignore_empty=True,
         extra="ignore",
         case_sensitive=True
     )
-
 
 settings = Settings()

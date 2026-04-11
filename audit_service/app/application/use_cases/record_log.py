@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 from uuid import UUID
 
 from app.domain.entities import AuditLog
-from app.application.ports.input import RecordAuditLogInputPort  # <-- IMPORT AÑADIDO
+from app.application.ports.input import RecordAuditLogInputPort
 from app.application.ports.output import AuditRepositoryPort, EventPublisherPort
 from app.core.security import sanitize_payload, mask_pii, generate_log_signature
 from app.core.config import settings
