@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  approval_api:
+    build: .
+    container_name: approval_api
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@approval_db:5432/approval_db
+      - REDIS_URL=redis://approval_redis:6379/0
+      # Simulamos la URL del backend principal de Django
+      - USER_SERVICE_URL=http://backend_django:8000
+    depends_on:
+      - approval_db
+      - approval_redis
+    volumes:
+      # Montar código fuente para auto-recarga en desarrollo
+      - .:/app
+    # Sobrescribimos el comando para usar --reload en desarrollo
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  approval_db:
+    image: postgres:16-alpine
+    container_name: approval_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=approval_db
+    ports:
+      - "5433:5432" # Puerto diferente para no chocar con la BD de auditoría
+    volumes:
+      - approval_pg_data:/var/lib/postgresql/data
+
+  approval_redis:
+    image: redis:7-alpine
+    container_name: approval_redis
+    ports:
+      - "6380:6379"
+
+  approval_worker:
+    build: .
+    container_name: approval_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@approval_db:5432/approval_db
+      - REDIS_URL=redis://approval_redis:6379/0
+    depends_on:
+      - approval_db
+      - approval_redis
+
+  approval_beat:
+    build: .
+    container_name: approval_beat
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    environment:
+      - REDIS_URL=redis://approval_redis:6379/0
+    depends_on:
+      - approval_redis
+
+volumes:
+  approval_pg_data:
