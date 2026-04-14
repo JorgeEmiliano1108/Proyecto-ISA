@@ -23,6 +23,7 @@ db.sqlite3-journal
 .env
 .env.local
 .env.*.local
+.env.example
 
 # IDE
 .vscode/
@@ -49,5 +50,5 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# Others
 nul
-.env.example
