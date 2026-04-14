@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}ISA - Dashboard{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- 🔥 Métricas -->
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Total Usuarios</small>
+                    <h3 class="fw-bold mb-0">150</h3>
+                </div>
+                <i class="bi bi-people fs-2 text-primary"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Evaluaciones</small>
+                    <h3 class="fw-bold mb-0">45</h3>
+                </div>
+                <i class="bi bi-clipboard-check fs-2 text-success"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Pendientes</small>
+                    <h3 class="fw-bold mb-0">12</h3>
+                </div>
+                <i class="bi bi-check-circle fs-2 text-warning"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Bonos</small>
+                    <h3 class="fw-bold mb-0">8</h3>
+                </div>
+                <i class="bi bi-gift fs-2 text-info"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔥 Secciones -->
+<div class="row mt-4 g-4">
+
+    <!-- Actividad -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white border-0 fw-bold">
+                <i class="bi bi-graph-up me-2 text-primary"></i> Actividad Reciente
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>
+                            <i class="bi bi-check-circle text-success me-2"></i>
+                            Nueva evaluación completada
+                        </span>
+                        <small class="text-muted">Hace 5 min</small>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>
+                            <i class="bi bi-person-plus text-primary me-2"></i>
+                            Nuevo usuario registrado
+                        </span>
+                        <small class="text-muted">Hace 1 hora</small>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>
+                            <i class="bi bi-gift text-warning me-2"></i>
+                            Bono aprobado
+                        </span>
+                        <small class="text-muted">Hace 3 horas</small>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tareas -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-header bg-white border-0 fw-bold">
+                <i class="bi bi-calendar me-2 text-primary"></i> Próximas Tareas
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Revisión de evaluaciones</span>
+                        <span class="badge bg-primary rounded-pill">Hoy</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Aprobación de bonos</span>
+                        <span class="badge bg-warning text-dark rounded-pill">Mañana</span>
+                    </li>
+
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span>Generar reporte mensual</span>
+                        <span class="badge bg-info text-dark rounded-pill">Próxima semana</span>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

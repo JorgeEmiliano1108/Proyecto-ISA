@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}ISA - Evaluaciones{% endblock %}
+
+{% block page_title %}Evaluaciones{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clipboard-check"></i> Lista de Evaluaciones</span>
+
+        <!-- 🔥 BOTÓN -->
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEvaluacion">
+            <i class="bi bi-plus-circle"></i> Nueva Evaluación
+        </button>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Calificación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Juan Pérez</td>
+                    <td>2026-04-01</td>
+                    <td><span class="badge bg-success">Completada</span></td>
+                    <td>85%</td>
+                    <td>
+                        <button class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>2</td>
+                    <td>María García</td>
+                    <td>2026-04-03</td>
+                    <td><span class="badge bg-warning">Pendiente</span></td>
+                    <td>-</td>
+                    <td>
+                        <button class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-primary">
+                            <i class="bi bi-check"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 🔥 MODAL NUEVA EVALUACIÓN -->
+<div class="modal fade" id="modalEvaluacion" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Nueva Evaluación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Usuario</label>
+                            <input type="text" class="form-control" name="usuario" placeholder="Nombre del usuario">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" class="form-control" name="fecha">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" name="estado">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Completada">Completada</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Calificación</label>
+                            <input type="number" class="form-control" name="calificacion" placeholder="Ej: 85">
+                        </div>
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            Guardar Evaluación
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
