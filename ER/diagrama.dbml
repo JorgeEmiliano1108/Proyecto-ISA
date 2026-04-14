@@ -38,6 +38,7 @@ Table usuarios {
   departamento_id int [ref: > cat_departamentos.id]
   manager_id UUID [ref: > usuarios.id]
   fecha_registro timestamp [default: `now()`]
+  password_hash text [not null]
 }
 
 // --- 3. TRANSACCIONAL (CABECERA) ---

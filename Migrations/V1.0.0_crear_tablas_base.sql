@@ -28,6 +28,7 @@ CREATE TABLE cat_competencias (
 CREATE TABLE usuarios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL, 
     rol_id INT NOT NULL REFERENCES cat_roles(id),
     departamento_id INT NOT NULL REFERENCES cat_departamentos(id),
     manager_id UUID REFERENCES usuarios(id),
