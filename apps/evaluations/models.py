@@ -1,10 +1,10 @@
 from django.db import models
-
+# 8 evaluaciones
 class Evaluaciones(models.Model):
     id = models.UUIDField(primary_key=True)
-    evaluado = models.ForeignKey('Usuarios', models.DO_NOTHING)
-    evaluador = models.ForeignKey('Usuarios', models.DO_NOTHING, related_name='evaluaciones_evaluador_set')
-    periodo = models.ForeignKey('CatPeriodos', models.DO_NOTHING)
+    evaluado = models.ForeignKey('users.Usuarios', models.DO_NOTHING)
+    evaluador = models.ForeignKey('users.Usuarios', models.DO_NOTHING, related_name='evaluaciones_evaluador_set')
+    periodo = models.ForeignKey('catalogs.CatPeriodos', models.DO_NOTHING)
     estado = models.CharField(max_length=50, blank=True, null=True)
     logros_previos = models.TextField(blank=True, null=True)
     comentarios_evaluador = models.TextField(blank=True, null=True)
@@ -16,20 +16,20 @@ class Evaluaciones(models.Model):
     class Meta:
         managed = False
         db_table = 'evaluaciones'
-
+# 9 competencias detalle
 class CompetenciasDetalle(models.Model):
     id = models.UUIDField(primary_key=True)
-    evaluacion = models.ForeignKey('Evaluaciones', models.DO_NOTHING)
-    competencia = models.ForeignKey('CatCompetencias', models.DO_NOTHING)
+    evaluacion = models.ForeignKey('evaluations.Evaluaciones', models.DO_NOTHING)
+    competencia = models.ForeignKey('catalogs.CatCompetencias', models.DO_NOTHING)
     calificacion = models.IntegerField(blank=True, null=True)
     comentario = models.TextField()
     class Meta:
         managed = False
         db_table = 'competencias_detalle'
-
+# 10 objetivos
 class Objetivos(models.Model):
     id = models.UUIDField(primary_key=True)
-    evaluacion = models.ForeignKey('Evaluaciones', models.DO_NOTHING)
+    evaluacion = models.ForeignKey('evaluations.Evaluaciones', models.DO_NOTHING)
     descripcion = models.TextField()
     class Meta:
         managed = False
