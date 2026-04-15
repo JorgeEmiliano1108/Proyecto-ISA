@@ -27,11 +27,15 @@ CREATE TABLE cat_competencias (
 -- 2. SEGURIDAD (Depende de roles y departamentos)
 CREATE TABLE usuarios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL, 
+    username VARCHAR(50) UNIQUE NOT NULL, -- Número de nómina o ID corporativo
+    password_hash TEXT NOT NULL,           -- Hash seguro (Bcrypt/Argon2)
+    nombres VARCHAR(100) NOT NULL,
+    apellido_paterno VARCHAR(100) NOT NULL,
+    apellido_materno VARCHAR(100),         -- Opcional
+    puesto VARCHAR(100),                   -- Título del cargo
     rol_id INT NOT NULL REFERENCES cat_roles(id),
     departamento_id INT NOT NULL REFERENCES cat_departamentos(id),
-    manager_id UUID REFERENCES usuarios(id),
+    manager_id UUID REFERENCES usuarios(id), -- Jerarquía (Jefe Inmediato)
     fecha_registro TIMESTAMP DEFAULT now()
 );
 

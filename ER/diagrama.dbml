@@ -32,13 +32,17 @@ Table cat_periodos {
 
 // --- 2. SEGURIDAD ---
 Table usuarios {
-  id UUID [pk, default: `gen_random_uuid()`]
-  username varchar(50) [unique, not null]
-  rol_id int [ref: > cat_roles.id]
-  departamento_id int [ref: > cat_departamentos.id]
-  manager_id UUID [ref: > usuarios.id]
+  id uuid [primary key, default: `gen_random_uuid()`]
+  username varchar(50) [unique, not null, note: 'ID de nómina']
+  password_hash text [not null, note: 'Hash Bcrypt']
+  nombres varchar(100) [not null]
+  apellido_paterno varchar(100) [not null]
+  apellido_materno varchar(100)
+  puesto varchar(100)
+  rol_id int [not null, ref: > cat_roles.id]
+  departamento_id int [not null, ref: > cat_departamentos.id]
+  manager_id uuid [ref: > usuarios.id, note: 'Auto-relación para jefes']
   fecha_registro timestamp [default: `now()`]
-  password_hash text [not null]
 }
 
 // --- 3. TRANSACCIONAL (CABECERA) ---
