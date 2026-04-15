@@ -1,0 +1,63 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<aside class="sidebar shadow-sm">
+    <div class="sidebar-logo text-center">
+        <h4 class="fw-bold mb-0">ISA</h4>
+        <h5 class="fw-bold mb-0">CORPORATIVO</h5>
+        <p class="text-muted mt-1" style="font-size: 0.8rem;">Sistema de Gestión</p>
+    </div>
+    
+    <div class="nav flex-column mt-4">
+        <a href="/frontend/src/pages/admin/dashboard/dashboard.html" class="sidebar-link" id="nav-dashboard">
+            <i class="bi bi-grid-1x2 fs-5"></i> Dashboard
+        </a>
+        <a href="/frontend/src/pages/admin/evaluaciones/evaluaciones.html" class="sidebar-link" id="nav-evaluaciones">
+            <i class="bi bi-ui-checks fs-5"></i> Evaluaciones
+        </a>
+        <a href="/frontend/src/pages/admin/aprobaciones/aprobaciones.html" class="sidebar-link" id="nav-aprobaciones">
+            <i class="bi bi-patch-check fs-5"></i> Aprobaciones
+        </a>
+        <a href="/frontend/src/pages/admin/reportes/reportes.html" class="sidebar-link" id="nav-reportes">
+            <i class="bi bi-bar-chart fs-5"></i> Reportes
+        </a>
+        <a href="/frontend/src/pages/admin/bonos/bonos.html" class="sidebar-link" id="nav-bonos">
+            <i class="bi bi-cash-stack fs-5"></i> Bonos
+        </a>
+        <a href="/frontend/src/pages/admin/usuarios/usuarios.html" class="sidebar-link" id="nav-usuarios">
+            <i class="bi bi-people fs-5"></i> Usuarios
+        </a>
+    </div>
+</aside>
+
+<nav class="top-navbar shadow-sm">
+    <div class="d-flex align-items-center w-50">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 border-light-subtle">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 border-light-subtle bg-light" placeholder="Buscar datos de desempeño...">
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-4">
+        <div class="position-relative" style="cursor: pointer;">
+            <i class="bi bi-bell fs-5 text-secondary"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                3
+            </span>
+        </div>
+        
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-end d-none d-md-block">
+                <div class="fw-bold" style="font-size: 0.9rem;">Admin User</div>
+                <div class="text-muted" style="font-size: 0.8rem;">Global Admin</div>
+            </div>
+            <div class="rounded-circle bg-dark text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-person fs-5"></i>
+            </div>
+            <button class="btn btn-sm btn-outline-danger ms-2" id="btnLogout">
+                <i class="bi bi-box-arrow-right"></i> Salir
+            </button>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,56 @@
+/* --- Estilos de las Tarjetas de Estadísticas --- */
+.card-stat {
+    border-radius: 15px; /* Bordes redondeados según tu diseño */
+    transition: transform 0.2s ease; /* Suavidad para el movimiento */
+}
+
+.card-stat:hover {
+    transform: translateY(-5px); /* Efecto de levante al pasar el mouse */
+}
+
+.icon-circle {
+    width: 50px; /* Tamaño ajustado para que se vea más estilizado */
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px; /* Forma cuadrada redondeada en lugar de círculo perfecto */
+    font-size: 1.5rem;
+}
+
+/* Asegura que los iconos hereden bien el tamaño y tengan transición */
+.icon-circle i {
+    transition: transform 0.2s ease;
+}
+
+.card-stat:hover .icon-circle i {
+    transform: scale(1.1); /* Pequeño efecto de zoom en el icono al hacer hover en la tarjeta */
+}
+
+/* --- Listas de Actividad y Tareas --- */
+.list-group-item {
+    border: none;
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+/* --- Badges y Etiquetas de Tiempo --- */
+.badge {
+    border-radius: 8px; /* Bordes suaves para los botones de estado */
+    font-weight: 500;
+}
+
+.badge-task {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Colores de estados (puedes usarlos con class="badge bg-today", etc.) */
+.bg-today { background-color: #0d6efd; color: white; }
+.bg-tomorrow { background-color: #ffc107; color: #000; }
+.bg-next-week { background-color: #0dcaf0; color: white; }

@@ -1,0 +1,55 @@
+/* --- Estilos de las Tarjetas de KPIs --- */
+.card-stat {
+    border-radius: 15px; /* Bordes redondeados según tu diseño */
+    transition: transform 0.2s ease; /* Suavidad para el movimiento */
+}
+
+.card-stat:hover {
+    transform: translateY(-5px); /* Efecto de levante al pasar el mouse */
+}
+
+.icon-circle {
+    width: 50px; /* Tamaño ajustado para que se vea más estilizado */
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px; /* Forma cuadrada redondeada en lugar de círculo perfecto */
+    font-size: 1.5rem;
+}
+
+.text-dark-blue { color: #1e3a5f; }
+.bg-light-blue { background-color: #eef4ff; color: #0d6efd; }
+.bg-dark-blue { background-color: #0d2540; }
+
+/* --- Tablas de Usuarios --- */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th {
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+/* Colores de estado */
+.text-success { color: #198754; }
+.text-muted { color: #6c757d; }
+
+/* --- Paginación --- */
+.pagination .page-link {
+    border-radius: 5px;
+    margin: 0 2px;
+    color: #0d6efd;
+    border: 1px solid #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}

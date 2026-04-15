@@ -1,0 +1,61 @@
+/* Sidebar Fijo */
+.sidebar {
+    width: var(--sidebar-width, 250px);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    z-index: 1000;
+    overflow-y: auto;
+    padding-top: 20px;
+}
+
+.sidebar-logo {
+    padding: 0 20px 20px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-link {
+    color: #495057;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 5px 15px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background-color: #f0f4f8; /* Un azul muy clarito */
+    color: var(--primary-color, #0d6efd);
+    font-weight: 600;
+}
+
+/* Barra superior (Navbar) */
+.top-navbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width, 250px);
+    right: 0;
+    height: 70px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 999;
+}
+
+/* Contenido Principal (El área donde irán las tablas y cards) */
+.page-content {
+    margin-left: var(--sidebar-width, 250px);
+    margin-top: 70px; /* Para que la navbar no tape el contenido */
+    padding: 30px;
+    min-height: calc(100vh - 70px);
+}
