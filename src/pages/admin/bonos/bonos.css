@@ -1,0 +1,50 @@
+/* --- Estilos de las Tarjetas de Programas --- */
+.card-stat {
+    border-radius: 15px; /* Bordes redondeados según tu diseño */
+    transition: transform 0.2s ease; /* Suavidad para el movimiento */
+}
+
+.card-stat:hover {
+    transform: translateY(-5px); /* Efecto de levante al pasar el mouse */
+}
+
+.icon-circle {
+    width: 50px; /* Tamaño ajustado para que se vea más estilizado */
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px; /* Forma cuadrada redondeada en lugar de círculo perfecto */
+    font-size: 1.5rem;
+}
+
+.text-dark-blue { color: #1e3a5f; }
+.bg-light-blue { background-color: #eef4ff; color: #0d6efd; }
+
+/* Colores de Badges */
+.bg-success-subtle { background-color: #e6f9ed; }
+.bg-secondary-subtle { background-color: #f0f1f2; }
+
+/* --- Tablas de Empleados --- */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th {
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+/* Colores de progreso */
+.progress-bar.bg-success { background-color: #198754; }
+.progress-bar.bg-primary { background-color: #0d6efd; }
+.progress-bar.bg-danger { background-color: #dc3545; }
+
+.text-success { color: #198754; }
+.text-danger { color: #dc3545; }
+
+.cursor-pointer { cursor: pointer; }

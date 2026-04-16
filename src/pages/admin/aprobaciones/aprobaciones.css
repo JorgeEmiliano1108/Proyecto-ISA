@@ -1,0 +1,59 @@
+.text-dark-blue { color: #1e3a5f; }
+.bg-light-blue { background-color: #eef4ff; }
+.bg-light-green { background-color: #e6f9ed; }
+
+.bg-light-blue-gradient {
+    background: linear-gradient(180deg, #f8faff 0%, #f0f4fc 100%);
+}
+
+.filter-link {
+    text-decoration: none;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding-bottom: 10px;
+    border-bottom: 2px solid transparent;
+}
+
+.filter-link.active {
+    color: #0d6efd;
+    border-bottom: 2px solid #0d6efd;
+}
+
+.card-solicitud {
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent !important;
+}
+
+.card-solicitud:hover {
+    background-color: #f8faff;
+    border-color: #eef4ff !important;
+    transform: translateY(-2px);
+}
+
+.icon-box {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.3rem;
+}
+
+.bg-danger-subtle { background-color: #feecec !important; }
+
+/* Status Pills para el Historial */
+.pill-approved {
+    background-color: #d1f2e2;
+    color: #1a7a4c;
+    border-radius: 20px;
+}
+
+.pill-denied {
+    background-color: #fce8e8;
+    color: #b02a2a;
+    border-radius: 20px;
+}
