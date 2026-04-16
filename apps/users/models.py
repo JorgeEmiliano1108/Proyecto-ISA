@@ -1,7 +1,8 @@
+import uuid
 from django.db import models
 
 class Usuarios(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(unique=True, max_length=50)    
     nombres = models.CharField(max_length=100)
     apellido_paterno = models.CharField(max_length=100)
@@ -23,3 +24,17 @@ class Usuarios(models.Model):
         if self.apellido_materno:
             return f"{self.nombres} {self.apellido_paterno} {self.apellido_materno}"
         return f"{self.nombres} {self.apellido_paterno}"
+    @property
+    def is_authenticated(self):
+        """Siempre devuelve True. Esto le dice a DRF que el usuario pasó el login con éxito."""
+        return True
+
+    @property
+    def is_anonymous(self):
+        """Siempre devuelve False para usuarios reales."""
+        return False
+        
+    @property
+    def is_active(self):
+        """Asumimos que está activo si pudo iniciar sesión."""
+        return True

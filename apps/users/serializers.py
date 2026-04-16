@@ -3,7 +3,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import check_password
 from .models import Usuarios
 
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Serializer personalizado para login JWT con modelo Usuarios de Supabase.
@@ -11,6 +10,19 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+
+    @classmethod
+    def get_token(cls, usuario):
+        token = super().get_token(usuario)
+        
+        # Claims personalizados
+        token['username'] = usuario.username
+        token['nombre_completo'] = usuario.nombre_completo
+        token['puesto'] = usuario.puesto
+        token['rol_id'] = usuario.rol_id
+        token['departamento_id'] = usuario.departamento_id
+        
+        return token
 
     def validate(self, attrs):
         username = attrs.get('username')
@@ -32,21 +44,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'code': 'invalid_credentials'
             })
 
-        attrs['user'] = usuario
-        return super().validate(attrs)
+        # 🔥 CAMBIO CLAVE: Generamos los tokens aquí mismo 
+        # en lugar de pasárselos a super().validate()
+        refresh = self.get_token(usuario)
 
-    @classmethod
-    def get_token(cls, usuario):
-        token = super().get_token(usuario)
-        
-        token['username'] = usuario.username
-        token['nombre_completo'] = usuario.nombre_completo
-        token['puesto'] = usuario.puesto
-        token['rol_id'] = usuario.rol_id
-        token['departamento_id'] = usuario.departamento_id
-        
-        return token
+        data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
 
+        return data
 
 class UsuarioSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.CharField(read_only=True)
