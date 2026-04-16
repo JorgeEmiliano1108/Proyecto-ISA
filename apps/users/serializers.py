@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from .models import Usuarios
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -44,7 +44,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'code': 'invalid_credentials'
             })
 
-        # 🔥 CAMBIO CLAVE: Generamos los tokens aquí mismo 
+        # CAMBIO CLAVE: Generamos los tokens aquí mismo 
         # en lugar de pasárselos a super().validate()
         refresh = self.get_token(usuario)
 
@@ -66,3 +66,26 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'rol', 'departamento', 'manager', 'fecha_registro'
         ]
         read_only_fields = ['id', 'fecha_registro']
+
+
+class UsuarioCreateSerializer(serializers.ModelSerializer):
+    """Serializer para crear y actualizar usuarios."""
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = Usuarios
+        fields = [
+            'username', 'password', 'nombres', 'apellido_paterno',
+            'apellido_materno', 'puesto', 'rol', 'departamento', 'manager'
+        ]
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        validated_data['password_hash'] = make_password(password)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if 'password' in validated_data:
+            password = validated_data.pop('password')
+            validated_data['password_hash'] = make_password(password)
+        return super().update(instance, validated_data)
