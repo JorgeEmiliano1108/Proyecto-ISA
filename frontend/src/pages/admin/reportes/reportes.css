@@ -1,0 +1,23 @@
+.text-dark-blue { color: #1e3a5f; }
+
+.icon-stat {
+    font-size: 1.4rem; /* Un poco más grande para que el icono bi resalte */
+    opacity: 0.8;
+}
+
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th {
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+/* Colores suaves para los badges de estado */
+.bg-success-subtle { background-color: #e6f9ed !important; }
+.bg-warning-subtle { background-color: #fff8e6 !important; }
