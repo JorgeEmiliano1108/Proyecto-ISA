@@ -1,0 +1,21 @@
+# app/core/permissions.yaml
+# Matriz de Control de Acceso Basado en Roles (RBAC) para ISA Corp
+
+roles:
+  RRHH:
+    - "evaluations:read:all"
+    - "evaluations:report:all"
+    - "rules:write"
+  
+  MANAGER:
+    - "evaluations:read:own_team"
+    - "evaluations:report:own_team"
+  
+  EMPLOYEE:
+    - "evaluations:read:self"
+    - "evaluations:report:self"
+    
+  # Si en el futuro agregas un auditor, solo lo añades aquí sin tocar Python o SQL
+  AUDITOR_EXTERNO:
+    - "evaluations:read:all"
+    - "evaluations:report:all"

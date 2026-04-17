@@ -1,0 +1,35 @@
+# prometheus/alerts.yml
+groups:
+  - name: isa_reports_alerts
+    rules:
+      # ALERTA 1: Tasa de Errores (Si el > 5% de las peticiones fallan)
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status_code="500"}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        for: 2m # La condición debe mantenerse por 2 minutos para evitar falsos positivos
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Tasa de errores 500 alta en API de Reportes"
+          description: "El microservicio está fallando en más del 5% de las peticiones en los últimos 5 minutos."
+
+      # ALERTA 2: Saturación de Cola (Si Celery se queda atascado)
+      - alert: CeleryQueueSaturated
+        expr: celery_queue_length > 50
+        for: 5m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "Cola de Celery saturada en Reportes"
+          description: "Hay más de 50 reportes encolados sin procesar. Posible caída de Ollama o Workers insuficientes."
+
+      # ALERTA 3: Servicio Caído
+      - alert: ReportsServiceDown
+        expr: up{job="reports_api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "El API de Reportes está caída"

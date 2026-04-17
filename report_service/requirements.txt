@@ -1,0 +1,44 @@
+# --- API & Core ---
+fastapi[all]==0.104.1
+uvicorn==0.24.0
+pydantic>=2.7
+pydantic-settings>=2.0.0
+python-multipart==0.0.6
+slowapi>=0.1.8
+PyJWT[crypto]>=2.8.0
+
+# --- Base de Datos (Async ORM) ---
+SQLAlchemy>=2.0.0
+asyncpg>=0.28.0
+alembic>=1.13.1
+
+# --- Seguridad ---
+PyJWT>=2.8.0
+
+# --- Orquestación Asíncrona ---
+celery==5.3.1
+redis==4.6.0
+
+# --- Generación de PDFs ---
+weasyprint==57.0
+pydyf<0.12
+jinja2==3.1.2
+
+# --- Infraestructura IA & RAG ---
+httpx==0.24.1
+qdrant-client>=1.9.0
+pypdf==3.17.0
+PyYAML>=6.0.1
+prometheus-client>=0.17.1
+
+# --- Almacenamiento en Nube (MinIO/S3) ---
+boto3==1.28.0
+
+# --- Utilidades ---
+python-dotenv==1.0.0
+tenacity>=8.2
+matplotlib==3.8.1
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+opentelemetry-instrumentation-fastapi>=0.41b0
+opentelemetry-instrumentation-celery>=0.41b0

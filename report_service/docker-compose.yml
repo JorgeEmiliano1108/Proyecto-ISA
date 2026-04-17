@@ -1,0 +1,215 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # API Y WORKERS (Lógica de Negocio)
+  # ==========================================
+  reports_service:
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    container_name: isa_reports_api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_secure_password_2024@reports_db:5432/isa_db
+      - MS3_REDIS_URL=redis://reports_redis:6379/0
+      - QDRANT_URL=http://reports_qdrant:6333
+      - OLLAMA_BASE_URL=http://ollama_reports:11434
+      # --- Integración MinIO (S3Adapter) ---
+      - MS3_S3_ENDPOINT=http://minio:9000
+      - MS3_S3_ACCESS_KEY=minioadmin
+      - MS3_S3_SECRET_KEY=minioadmin
+      - MS3_S3_BUCKET=reports
+    volumes:
+      - ./app:/srv/report_service/app 
+      - reports_static:/srv/ms3_reports/static
+    ports:
+      - "8003:8003"
+    depends_on:
+      reports_redis:
+        condition: service_healthy
+      reports_db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - isa_reports_network
+
+  reports_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: isa_reports_worker
+    
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info"]
+    
+    # Le decimos a Docker que espere hasta 5 minutos antes de asesinar el proceso
+    stop_grace_period: 5m
+
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_secure_password_2024@reports_db:5432/isa_db
+      - MS3_REDIS_URL=redis://reports_redis:6379/0
+      - QDRANT_URL=http://reports_qdrant:6333
+      - OLLAMA_BASE_URL=http://ollama_reports:11434
+      # --- Integración MinIO (S3Adapter) ---
+      - MS3_S3_ENDPOINT=http://minio:9000
+      - MS3_S3_ACCESS_KEY=minioadmin
+      - MS3_S3_SECRET_KEY=minioadmin
+      - MS3_S3_BUCKET=reports
+    volumes:
+      - ./app:/srv/report_service/app
+      - reports_static:/srv/ms3_reports/static
+    depends_on:
+      reports_redis:
+        condition: service_healthy
+      ollama_reports:
+        condition: service_started
+      reports_qdrant:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks:
+      - isa_reports_network
+
+  # ==========================================
+  # INFRAESTRUCTURA (Bases de datos e IA)
+  # ==========================================
+  reports_db:
+    image: postgres:16-alpine
+    container_name: isa_reports_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_secure_password_2024
+      - POSTGRES_DB=isa_db
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    command: postgres -c shared_buffers=256MB -c wal_level=replica
+    ports:
+      - "5434:5432" 
+    volumes:
+      - reports_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - isa_reports_network
+
+  reports_redis:
+    image: redis:7-alpine
+    container_name: isa_reports_redis
+    ports:
+      - "6381:6379" 
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - isa_reports_network
+
+  reports_qdrant:
+    image: qdrant/qdrant
+    container_name: isa_reports_qdrant
+    ports:
+      - "6334:6333" 
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - isa_reports_network
+
+  ollama_reports:
+    image: ollama/ollama:latest
+    container_name: isa_reports_ollama
+    ports:
+      - "11436:11434" 
+    volumes:
+      - ollama_reports_models:/root/.ollama
+    entrypoint: >
+      /bin/sh -c "
+      ollama serve &
+      sleep 5 &&
+      ollama run phi3 &
+      wait"
+    networks:
+      - isa_reports_network
+
+  minio:
+    image: minio/minio:latest
+    container_name: isa_reports_minio
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # API S3
+      - "9001:9001" # Consola Web
+    volumes:
+      - minio_data:/data
+    networks:
+      - isa_reports_network
+
+  minio_setup:
+    image: minio/mc:latest
+    container_name: isa_reports_minio_setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/reports --ignore-existing;
+      mc ilm rule add --expire-days 1 myminio/reports;
+      exit 0;
+      "
+    networks:
+      - isa_reports_network
+
+  # ==========================================
+  # OBSERVABILIDAD Y ALERTAS (Sprint 3)
+  # ==========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: isa_prometheus
+    volumes:
+      # Montamos los archivos de configuración que creamos previamente
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090" # Interfaz Web de Prometheus
+    networks:
+      - isa_reports_network
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: isa_alertmanager
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    ports:
+      - "9093:9093" # Interfaz Web de Alertmanager
+    networks:
+      - isa_reports_network
+
+# ==========================================
+# VOLÚMENES Y REDES
+# ==========================================
+volumes:
+  reports_static:
+  reports_pg_data:
+  qdrant_data:
+  ollama_reports_models:
+  minio_data: 
+  prometheus_data: 
+
+networks:
+  isa_reports_network:
+    driver: bridge
