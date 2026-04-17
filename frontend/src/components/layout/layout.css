@@ -59,3 +59,11 @@
     padding: 30px;
     min-height: calc(100vh - 70px);
 }
+
+/* Agrega esto al final de tu layout.css */
+.hover-icon {
+    transition: color 0.2s;
+}
+.hover-icon:hover i {
+    color: var(--primary-color, #0d6efd) !important;
+}

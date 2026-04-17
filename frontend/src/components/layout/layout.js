@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <a href="../../admin/dashboard/dashboard.html" class="sidebar-link">
                 <i class="bi bi-grid-1x2 fs-5"></i> Dashboard
             </a>
+            <a href="../../admin/usuarios/usuarios.html" class="sidebar-link">
+                <i class="bi bi-people fs-5"></i> Usuarios
+            </a>
+            <a href="../../admin/catalogos/catalogos.html" class="sidebar-link">
+                <i class="bi bi-folder2-open fs-5"></i> Catálogos
+            </a>
             <a href="../../admin/evaluaciones/evaluaciones.html" class="sidebar-link">
                 <i class="bi bi-ui-checks fs-5"></i> Evaluaciones
             </a>
@@ -29,9 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
             </a>
             <a href="../../admin/bonos/bonos.html" class="sidebar-link">
                 <i class="bi bi-cash-stack fs-5"></i> Bonos
-            </a>
-            <a href="../../admin/usuarios/usuarios.html" class="sidebar-link">
-                <i class="bi bi-people fs-5"></i> Usuarios
             </a>
         `;
     } else {
@@ -51,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
-    // 2. Inyectar tu HTML exacto, pero con las variables dinámicas
+    // 2. Inyectar tu HTML con la Navbar Mejorada
     container.innerHTML = `
         <aside class="sidebar shadow-sm">
             <div class="sidebar-logo text-center">
@@ -68,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <nav class="top-navbar shadow-sm">
             <div class="d-flex align-items-center w-50">
                 <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0 border-light-subtle">
+                    <span class="input-group-text bg-white border-end-0 border-light-subtle px-3">
                         <i class="bi bi-search text-muted"></i>
                     </span>
                     <input type="text" class="form-control border-start-0 border-light-subtle bg-light" placeholder="Buscar datos de desempeño...">
@@ -76,28 +79,48 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <div class="d-flex align-items-center gap-4">
-                <div class="position-relative" style="cursor: pointer;">
-                    <i class="bi bi-bell fs-5 text-secondary"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">3</span>
+                
+                <div class="d-flex align-items-center gap-4 text-secondary" style="cursor: pointer;">
+                    <div class="position-relative hover-icon">
+                        <i class="bi bi-bell fs-5 text-dark"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.3em 0.5em;">3</span>
+                    </div>
+                    <div class="hover-icon d-none d-sm-block"><i class="bi bi-gear fs-5 text-dark"></i></div>
+                    <div class="hover-icon d-none d-sm-block"><i class="bi bi-question-circle fs-5 text-dark"></i></div>
                 </div>
                 
-                <div class="d-flex align-items-center gap-2">
-                    <div class="text-end d-none d-md-block">
-                        <div class="fw-bold" style="font-size: 0.9rem;">${userData.nombre}</div>
-                        <div class="text-muted text-capitalize" style="font-size: 0.8rem;">${userData.rol}</div>
+                <div class="vr d-none d-md-block mx-2" style="height: 35px; align-self: center; background-color: #dee2e6; width: 2px;"></div>
+
+                <div class="dropdown">
+                    <div class="d-flex align-items-center gap-3" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                        <div class="text-end d-none d-md-block">
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.2;">${userData.nombre}</div>
+                            <div class="text-muted text-capitalize" style="font-size: 0.8rem;">${userData.rol}</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-dark text-white d-flex justify-content-center align-items-center shadow-sm" style="width: 42px; height: 42px;">
+                                <i class="bi bi-person fs-5"></i>
+                            </div>
+                            <i class="bi bi-chevron-down text-muted d-none d-md-block" style="font-size: 0.8rem;"></i>
+                        </div>
                     </div>
-                    <div class="rounded-circle bg-dark text-white d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
-                        <i class="bi bi-person fs-5"></i>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="logout()">
-                        <i class="bi bi-box-arrow-right"></i> Salir
-                    </button>
+                    
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3" style="min-width: 180px; border-radius: 10px;">
+                        <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.7rem;">Mi Cuenta</h6></li>
+                        <li><a class="dropdown-item py-2 small" href="#"><i class="bi bi-person me-2 text-muted"></i> Mi Perfil</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <button class="dropdown-item text-danger fw-bold py-2 small" onclick="logout()">
+                                <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                            </button>
+                        </li>
+                    </ul>
                 </div>
+
             </div>
         </nav>
     `;
 
-    // 3. Activar el color azul en el menú donde el usuario está parado actualmente
     marcarLinkActivo();
 });
 
@@ -113,7 +136,6 @@ function marcarLinkActivo() {
     const links = document.querySelectorAll('.sidebar-link');
     
     links.forEach(link => {
-        // Obtenemos el href y le quitamos los ../ para comparar con la URL actual
         const linkPath = link.getAttribute('href').replace(/\.\.\//g, '');
         if (currentPath.includes(linkPath)) {
             link.classList.add('active');
