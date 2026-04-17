@@ -368,17 +368,6 @@ http://localhost:8000
 http://localhost:8000/admin/
 ```
 
----
-
-## Variables de Entorno (.env)
-
-```env
-SECRET_KEY=django-insecure-change-this-in-production
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-DATABASE_URL=postgresql://postgres.pkihspbkksoggvvwcbam:admin_database2026@aws-1-us-west-2.pooler.supabase.com:6543/postgres
-JWT_SECRET_KEY=tu-jwt-secret-key-aqui
-```
 
 ---
 
