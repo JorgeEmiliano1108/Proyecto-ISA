@@ -13,23 +13,24 @@
 <body>
 
     <div class="login-container">
-        <!-- Lado Izquierdo -->
         <div class="login-left">
             <div class="grid-pattern"></div>
             <div class="circle-decoration circle-1"></div>
             <div class="circle-decoration circle-2"></div>
             <div class="circle-decoration circle-3"></div>
-            <div class="login-brand">
+            
+            <div class="login-brand animate-fade-up">
                 <div class="brand-logo">ISA</div>
                 <div class="brand-text">CORPORATIVO</div>
-                <p class="brand-subtitle">Sistema de Gestión</p>
+                <div class="brand-divider"></div>
+                <p class="brand-subtitle">Sistema de Gestión de Desempeño</p>
             </div>
         </div>
         
-        <!-- Lado Derecho -->
         <div class="login-right">
-            <div class="login-form-container">
-                <h2 class="login-title">Iniciar Sesión</h2>
+            <div class="login-form-container animate-fade-in">
+                <h2 class="login-title">Bienvenido</h2>
+                <p class="login-instruction">Por favor, ingresa tus credenciales para continuar.</p>
                 
                 <form id="loginForm">
                     <div class="form-group">
@@ -54,8 +55,18 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-login w-100">Entrar</button>
+                    <button type="submit" class="btn btn-login w-100">
+                        <span>Iniciar Sesión</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
                 </form>
+                
+                <div class="login-footer">
+                    <p>&copy; 2026 ISA Corporativo. Todos los derechos reservados.</p>
+                </div>
             </div>
         </div>
     </div>

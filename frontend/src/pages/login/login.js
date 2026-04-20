@@ -1,25 +1,29 @@
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value; // Aquí validarás con el backend después
+    const btn = e.target.querySelector('.btn-login');
+    const originalText = btn.innerHTML;
+    
+    // Efecto de carga visual
+    btn.innerHTML = 'Validando...';
+    btn.style.opacity = '0.7';
+    btn.style.pointerEvents = 'none';
 
-    // Creamos el objeto de sesión
+    const user = document.getElementById('username').value;
+
     const userData = {
         nombre: user,
         rol: user === 'admin' ? 'admin' : 'usuario'
     };
 
-    // Guardamos en LocalStorage para que el Layout sepa qué mostrar
     localStorage.setItem('userData', JSON.stringify(userData));
 
-    // REDIRECCIÓN LÓGICA
-    if(user === 'admin') {
-        // El admin va a su dashboard
-        window.location.href = './src/pages/admin/dashboard/dashboard.html';
-    } else {
-        // EL USUARIO DEBE IR A SU DASHBOARD, NO AL LAYOUT
-        // Esta es la ruta correcta según tu árbol de carpetas:
-        window.location.href = './src/pages/usuario/dashboard/dashboard.html';
-    }
+    // Simulamos una pequeña espera para la animación
+    setTimeout(() => {
+        if(user === 'admin') {
+            window.location.href = './src/pages/admin/dashboard/dashboard.html';
+        } else {
+            window.location.href = './src/pages/usuario/dashboard/dashboard.html';
+        }
+    }, 800);
 });
