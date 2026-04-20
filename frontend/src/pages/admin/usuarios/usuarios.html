@@ -18,14 +18,14 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="fw-bold text-dark-blue">Gestión de Usuarios</h2>
-                    <p class="text-muted">Orquesta la jerarquía de tu empresa. Crea, evalúa y gestiona protocolos de acceso al sistema en todos los departamentos.</p>
+                    <p class="text-muted">Orquesta la jerarquía de tu empresa. Crea, evalúa y gestiona protocolos de acceso.</p>
                 </div>
                 <button class="btn btn-primary px-4 shadow-sm fw-bold" id="btn-crear-usuario">➕ CREAR USUARIO</button>
             </div>
 
             <div class="row g-4 mb-4">
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 15px;">
+                    <div class="card border-0 shadow-sm p-4 h-100 bg-white">
                         <div class="d-flex justify-content-between mb-3 align-items-center">
                              <span class="text-uppercase small fw-bold text-muted">Total de Personal</span>
                              <span class="icon-circle text-primary bg-light-blue">👥</span>
@@ -35,7 +35,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-4 h-100 bg-light-blue" style="border-radius: 15px;">
+                    <div class="card border-0 shadow-sm p-4 h-100 bg-light-blue">
                         <div class="d-flex justify-content-between mb-3 align-items-center">
                              <span class="text-uppercase small fw-bold text-muted">Activos Ahora</span>
                              <span class="icon-circle text-success bg-white">🟢</span>
@@ -45,46 +45,99 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm p-4 h-100 bg-dark-blue text-white" style="border-radius: 15px;">
-                        <span class="text-uppercase small fw-bold mb-3 d-block">Salud de Seguridad del Sistema</span>
-                        <h5 class="fw-bold mb-1">Todos los Protocolos de Acceso Nominales</h5>
-                        <p class="small mb-0 opacity-75">🛡️ Cifrado • Habilitado para 2FA: 98%</p>
+                    <div class="card border-0 shadow-sm p-4 h-100 bg-dark-blue text-white">
+                        <span class="text-uppercase small fw-bold mb-3 d-block">Seguridad del Sistema</span>
+                        <h5 class="fw-bold mb-1">Protocolos Nominales</h5>
+                        <p class="small mb-0 opacity-75">🛡️ Cifrado • 2FA: 98%</p>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm p-4" style="border-radius: 15px;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-light btn-sm border text-muted">Filtro</button>
-                        <button class="btn btn-light btn-sm border text-muted">Exportar</button>
+            <div class="card border-0 shadow-sm p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                            <input type="text" id="input-busqueda" class="form-control border-start-0" placeholder="Buscar por nombre o email...">
+                        </div>
+                        <button class="btn btn-light btn-sm border text-muted" id="btn-exportar">
+                            <i class="bi bi-download"></i> Exportar
+                        </button>
                     </div>
-                    <span class="text-muted small">Mostrando 1-10 de <span id="total-usuarios-tabla">...</span> usuarios</span>
+                    <span class="text-muted small">Mostrando <span id="mostrando-count">0</span> de <span id="total-usuarios-tabla">...</span> usuarios</span>
                 </div>
                 
-                <table class="table table-hover table-striped-columns small">
-                    <thead class="table-light text-uppercase small text-muted">
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Rol</th>
-                            <th>Departamento</th>
-                            <th>Estado</th>
-                            <th>Último Inicio de Sesión</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-usuarios">
-                        </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover small">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Departamento</th>
+                                <th>Estado</th>
+                                <th>Último Inicio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-usuarios"></tbody>
+                    </table>
+                </div>
 
-                <nav aria-label="Navegación de páginas de usuarios" class="mt-4">
-                    <ul class="pagination pagination-sm justify-content-center" id="paginacion-usuarios">
-                        </ul>
+                <nav aria-label="Paginación" class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center" id="paginacion-usuarios"></ul>
                 </nav>
             </div>
-
         </div>
     </main>
+
+    <div class="modal fade" id="modalUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow" style="border-radius: 15px;">
+                <div class="modal-header border-0 bg-light-blue">
+                    <h5 class="modal-title fw-bold text-dark-blue" id="modalUsuarioLabel">➕ Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="form-usuario">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">NOMBRE COMPLETO</label>
+                            <input type="text" class="form-control" id="nombre" placeholder="Ej. Sarah Jenkins" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">CORREO ELECTRÓNICO</label>
+                            <input type="email" class="form-control" id="email" placeholder="ejemplo@empresa.com" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold text-muted">ROL</label>
+                                <select class="form-select" id="rol" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Arquitecta Sr.">Arquitecta Sr.</option>
+                                    <option value="Líder de Equipo">Líder de Equipo</option>
+                                    <option value="Controladora">Controladora</option>
+                                    <option value="Administrador">Administrador</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold text-muted">DEPARTAMENTO</label>
+                                <select class="form-select" id="dept" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Estrategia">Estrategia</option>
+                                    <option value="Ingeniería">Ingeniería</option>
+                                    <option value="Operaciones">Operaciones</option>
+                                    <option value="Recursos Humanos">RRHH</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold">GUARDAR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../../components/layout/layout.js"></script>
