@@ -104,7 +104,7 @@ Proyecto-ISA/
 │   │   ├── views.py                  # CustomTokenObtainPairView, UsuarioViewSet, IsAdminOrContraloria
 │   │   ├── urls.py                    # Rutas: /auth/login/, /auth/refresh/, /users/
 │   │   ├── admin.py                   # Admin con auto-encriptación de password
-│   │   └── authentication.py          # CustomJWTAuthentication (pendiente)
+│   │   └── authentication.py          # ✅ CustomJWTAuthentication
 │   │
 │   ├── catalogs/                      # 📍 DOMINIO: Catálogos del Sistema
 │   │   ├── __init__.py
@@ -279,7 +279,7 @@ class IsAdminOrContraloria(BasePermission):
 
 ---
 
-## Máquina de Estados (FSM) - Pendiente
+## Máquina de Estados (FSM) - ✅ Completada
 
 ```
     ┌──────────────────────────────────────────────────────────┐
@@ -434,12 +434,10 @@ Para contribuir a esta rama:
 
 ---
 
-## Estado: Fase 1 Completada ✅
+## Estado: Fases 1 y 2 Completadas ✅
 
-El proyecto tiene la Fase 1 completamente funcional:
-- ✅ Login JWT funcionando
-- ✅ Catálogos API (ReadOnly) funcionando
-- ✅ CRUD de Usuarios con permisos RBAC
-- ✅ Django Admin configurado
+El proyecto tiene las siguientes fases funcionales:
+- ✅ Fase 1: Login JWT, Catálogos API (ReadOnly), CRUD Usuarios, Permisos RBAC, Django Admin
+- ✅ Fase 2: Evaluación Core Service con State Machine, Permisos a nivel de objeto, Tests unitarios
 
-**Próximo paso**: Fase 2 - Máquina de Estados con django-fsm para evaluaciones
+**Próximo paso**: Fase 3 - Firmas Electrónicas y Bonos
