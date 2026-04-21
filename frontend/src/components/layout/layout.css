@@ -1,6 +1,12 @@
+/* Variables Globales */
+:root {
+    --sidebar-width: 250px;
+    --primary-color: #1e40af; /* Color por defecto que será sobreescrito por JS */
+}
+
 /* Sidebar Fijo */
 .sidebar {
-    width: var(--sidebar-width, 250px);
+    width: var(--sidebar-width);
     height: 100vh;
     position: fixed;
     top: 0;
@@ -17,6 +23,12 @@
     border-bottom: 1px solid #e0e0e0;
 }
 
+/* Aplicamos el color dinámico al nombre del corporativo para que resalte */
+.sidebar-logo h4, .sidebar-logo h5 {
+    color: var(--primary-color);
+    transition: color 0.3s ease;
+}
+
 .sidebar-link {
     color: #495057;
     padding: 12px 20px;
@@ -29,10 +41,11 @@
     text-decoration: none;
 }
 
+/* Ajuste de estados Hover y Activo */
 .sidebar-link:hover,
 .sidebar-link.active {
-    background-color: #f0f4f8; /* Un azul muy clarito */
-    color: var(--primary-color, #0d6efd);
+    background-color: rgba(var(--primary-color-rgb, 30, 64, 175), 0.1); /* Fondo sutil del color elegido */
+    color: var(--primary-color);
     font-weight: 600;
 }
 
@@ -40,7 +53,7 @@
 .top-navbar {
     position: fixed;
     top: 0;
-    left: var(--sidebar-width, 250px);
+    left: var(--sidebar-width);
     right: 0;
     height: 70px;
     background-color: #ffffff;
@@ -52,18 +65,28 @@
     z-index: 999;
 }
 
-/* Contenido Principal (El área donde irán las tablas y cards) */
+/* Contenido Principal */
 .page-content {
-    margin-left: var(--sidebar-width, 250px);
-    margin-top: 70px; /* Para que la navbar no tape el contenido */
+    margin-left: var(--sidebar-width);
+    margin-top: 70px;
     padding: 30px;
     min-height: calc(100vh - 70px);
 }
 
-/* Agrega esto al final de tu layout.css */
+/* Iconos de la Navbar */
 .hover-icon {
-    transition: color 0.2s;
+    transition: transform 0.2s, color 0.2s;
 }
+
+.hover-icon:hover {
+    transform: translateY(-2px);
+}
+
 .hover-icon:hover i {
-    color: var(--primary-color, #0d6efd) !important;
+    color: var(--primary-color) !important;
+}
+
+/* Ajuste para el badge de notificaciones para que combine */
+.top-navbar .badge {
+    background-color: var(--primary-color) !important;
 }

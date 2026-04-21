@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // --- 0. APLICAR TEMA DINÁMICO (Agregado) ---
+    const savedColor = localStorage.getItem('isaThemeColor');
+    if (savedColor) {
+        document.documentElement.style.setProperty('--primary-color', savedColor);
+    }
+
     const container = document.getElementById('layout-container');
     const userData = JSON.parse(localStorage.getItem('userData'));
 

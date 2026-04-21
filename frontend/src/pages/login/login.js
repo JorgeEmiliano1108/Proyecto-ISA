@@ -1,8 +1,25 @@
+// --- Lógica del selector de color ---
+const picker = document.getElementById('colorPicker');
+
+window.addEventListener('DOMContentLoaded', () => {
+    const savedColor = localStorage.getItem('isaThemeColor');
+    if (savedColor) {
+        document.documentElement.style.setProperty('--primary-color', savedColor);
+        picker.value = savedColor;
+    }
+});
+
+picker.addEventListener('input', (e) => {
+    const color = e.target.value;
+    document.documentElement.style.setProperty('--primary-color', color);
+    localStorage.setItem('isaThemeColor', color);
+});
+
+// --- Tu lógica original de login ---
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const btn = e.target.querySelector('.btn-login');
-    const originalText = btn.innerHTML;
     
     // Efecto de carga visual
     btn.innerHTML = 'Validando...';

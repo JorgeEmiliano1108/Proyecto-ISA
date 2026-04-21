@@ -1,3 +1,8 @@
+/* Variables de color dinámicas */
+:root {
+    --primary-color: #1e40af;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -10,25 +15,56 @@ body {
     overflow: hidden;
 }
 
+/* --- ESTILOS DEL LÁPIZ FLOTANTE --- */
+.theme-picker-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+}
+
+.pencil-btn {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.pencil-btn:hover { transform: scale(1.1); }
+.pencil-btn svg { width: 22px; height: 22px; }
+
+#colorPicker {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .login-container {
     display: flex;
     width: 100%;
     height: 100vh;
 }
 
-/* Lado Izquierdo: Branding Corporativo */
 .login-left {
     width: 45%;
-    background: linear-gradient(135deg, #0a192f 0%, #112240 100%);
+    /* Cambiado a variable */
+    background: linear-gradient(135deg, #0a192f 0%, var(--primary-color) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 60px;
     position: relative;
     overflow: hidden;
+    transition: background 0.5s ease;
 }
 
-/* Decoraciones */
 .grid-pattern {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -82,7 +118,6 @@ body {
     margin: 0 auto 20px;
 }
 
-/* Lado Derecho: Formulario Limpio */
 .login-right {
     width: 55%;
     display: flex;
@@ -142,13 +177,14 @@ body {
 
 .form-control:focus {
     background: #fff;
-    border-color: #1e40af;
+    /* Cambiado a variable */
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.1);
 }
 
-/* Botón con animación */
 .btn-login {
-    background: #1e40af;
+    /* Cambiado a variable */
+    background: var(--primary-color);
     color: white;
     padding: 16px;
     border-radius: 12px;
@@ -157,13 +193,14 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
+    border: none; /* Asegura que no haya borde raro */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-login:hover {
-    background: #1e3a8a;
+    filter: brightness(1.1);
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(30, 64, 175, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .btn-login:hover svg {
@@ -174,24 +211,11 @@ body {
     transition: transform 0.3s ease;
 }
 
-/* Animaciones de Entrada */
-.animate-fade-up {
-    animation: fadeUp 1s ease-out forwards;
-}
+.animate-fade-up { animation: fadeUp 1s ease-out forwards; }
+.animate-fade-in { animation: fadeIn 1.2s ease-out forwards; }
 
-.animate-fade-in {
-    animation: fadeIn 1.2s ease-out forwards;
-}
-
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .login-footer {
     margin-top: 50px;
