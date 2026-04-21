@@ -9,7 +9,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    font-size: 1.1rem; /* Un poco más grande para los iconos bi */
+    font-size: 1.1rem;
 }
 
 .bg-light-blue-gradient {
@@ -17,7 +17,7 @@
 }
 
 .bar-chart-mini .bar {
-    width: 8px; /* Ajustado para que el gráfico se vea consistente */
+    width: 8px;
     border-radius: 3px;
 }
 
@@ -49,4 +49,30 @@
     right: 20px;
     font-size: 0.65rem;
     letter-spacing: 1px;
+}
+
+/* Estilos para opciones dinámicas */
+.option-text {
+    font-size: 0.85rem;
+    border-color: #dee2e6;
+}
+
+.option-text:focus {
+    box-shadow: none;
+    border-color: #0d6efd;
+    background-color: #fff !important;
+}
+
+.input-group-text {
+    color: #0d6efd;
+    opacity: 0.6;
+}
+
+.animate__fadeIn {
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }

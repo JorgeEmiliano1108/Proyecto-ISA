@@ -1,17 +1,10 @@
 let criteriaCount = 0;
-const evaluationData = {
-    title: "",
-    description: "",
-    audience: "",
-    criteria: []
-};
 
-// --- SIMULACIÓN DE BACKEND (SERVICIOS) ---
+// --- SIMULACIÓN DE BACKEND ---
 const EvalService = {
     async publish(data) {
-        console.log("Enviando al backend:", data);
-        // En el futuro: return fetch('api/evaluations', { method: 'POST', body: JSON.stringify(data) });
-        return { success: true, id: Date.now() };
+        console.log("Objeto final enviado a ISA Corporativo:", data);
+        return { success: true };
     }
 };
 
@@ -20,9 +13,42 @@ function addCriterion(type) {
     criteriaCount++;
     const container = document.getElementById('criteria-container');
     const div = document.createElement('div');
-    div.className = 'criteria-block shadow-sm';
+    const uniqueId = Date.now(); // ID para identificar este bloque de opciones
+    div.className = 'criteria-block shadow-sm question-item';
     
-    // Plantilla dinámica basada en el tipo (Totalmente en español)
+    let contentHtml = '';
+
+    if (type === 'ESCALA LINEAL') {
+        contentHtml = `
+            <div class="mt-4 px-5">
+                <input type="range" class="form-range" min="0" max="100">
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>LIMITADO</span>
+                    <span>VISIONARIO</span>
+                </div>
+            </div>`;
+    } else if (type === 'OPCIÓN MÚLTIPLE') {
+        // Plantilla con contenedor de opciones dinámicas
+        contentHtml = `
+            <div class="mt-3 px-5">
+                <div id="options-container-${uniqueId}" class="d-flex flex-wrap gap-3 mb-2">
+                    <div class="input-group input-group-sm" style="width: 200px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-circle small"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0 option-text" placeholder="Opción 1">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none" 
+                        onclick="addOptionField(${uniqueId})">
+                    <i class="bi bi-plus-circle-fill"></i> Añadir otra opción
+                </button>
+            </div>`;
+    } else {
+        contentHtml = `
+            <div class="mt-3 px-5">
+                <textarea class="form-control bg-white" rows="2" placeholder="El usuario escribirá su respuesta aquí..." disabled></textarea>
+            </div>`;
+    }
+
     div.innerHTML = `
         <span class="badge bg-white text-primary border type-badge">${type}</span>
         <div class="row align-items-center">
@@ -32,47 +58,69 @@ function addCriterion(type) {
                 </div>
             </div>
             <div class="col">
-                <input type="text" class="form-control border-0 bg-transparent fw-bold" placeholder="Nombre del criterio o pregunta...">
+                <input type="text" class="form-control border-0 bg-transparent fw-bold question-input" 
+                       data-type="${type}" data-id="${uniqueId}"
+                       placeholder="Nombre del criterio o pregunta...">
             </div>
         </div>
-        ${type === 'ESCALA LINEAL' ? `
-            <div class="mt-4 px-5">
-                <input type="range" class="form-range" min="0" max="100">
-                <div class="d-flex justify-content-between small text-muted">
-                    <span>LIMITADO</span>
-                    <span>VISIONARIO</span>
-                </div>
-            </div>
-        ` : type === 'OPCIÓN MÚLTIPLE' ? `
-            <div class="mt-3 px-5 d-flex gap-4">
-                <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="small">Líder Emergente</label></div>
-                <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="small">Experto Consolidado</label></div>
-            </div>
-        ` : `
-            <div class="mt-3 px-5">
-                <textarea class="form-control bg-white" rows="2" placeholder="El usuario escribirá su respuesta aquí..." disabled></textarea>
-            </div>
-        `}
+        ${contentHtml}
     `;
     
     container.appendChild(div);
-    // Traducción del contador
-    document.getElementById('items-count').textContent = `${criteriaCount} ${criteriaCount === 1 ? 'ELEMENTO AÑADIDO' : 'ELEMENTOS AÑADIDOS'}`;
+    document.getElementById('items-count').textContent = `${criteriaCount} ELEMENTOS AÑADIDOS`;
 }
 
-// Evento para publicar
+// Función para añadir campos de opción dinámicamente
+function addOptionField(id) {
+    const container = document.getElementById(`options-container-${id}`);
+    const newOption = document.createElement('div');
+    newOption.className = 'input-group input-group-sm animate__animated animate__fadeIn';
+    newOption.style.width = '200px';
+    newOption.innerHTML = `
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-circle small"></i></span>
+        <input type="text" class="form-control border-start-0 ps-0 option-text" placeholder="Nueva opción">
+        <button class="btn btn-outline-danger border-0" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+    `;
+    container.appendChild(newOption);
+}
+
+// Evento para publicar (Recoge preguntas + opciones)
 document.getElementById('btn-publish').addEventListener('click', async () => {
-    evaluationData.title = document.getElementById('eval-title').value;
-    evaluationData.description = document.getElementById('eval-desc').value;
-    evaluationData.audience = document.getElementById('eval-audience').value;
+    const evaluationData = {
+        title: document.getElementById('eval-title').value,
+        description: document.getElementById('eval-desc').value,
+        audience: document.getElementById('eval-audience').value,
+        criteria: []
+    };
     
-    if(!evaluationData.title) {
-        alert("Por favor, ponle un título a la evaluación");
+    const allQuestions = document.querySelectorAll('.question-input');
+
+    allQuestions.forEach((input) => {
+        const type = input.getAttribute('data-type');
+        const qId = input.getAttribute('data-id');
+        let options = [];
+
+        // Si es múltiple, buscamos sus opciones específicas
+        if (type === 'OPCIÓN MÚLTIPLE') {
+            const optionInputs = document.querySelectorAll(`#options-container-${qId} .option-text`);
+            optionInputs.forEach(opt => options.push(opt.value));
+        }
+
+        evaluationData.criteria.push({
+            pregunta: input.value,
+            tipo: type,
+            opciones: options // Aquí se guardan las múltiples opciones
+        });
+    });
+
+    if(!evaluationData.title || evaluationData.criteria.length === 0) {
+        alert("Completa el título y añade al menos una pregunta.");
         return;
     }
 
     const res = await EvalService.publish(evaluationData);
     if(res.success) {
-        alert("¡Evaluación publicada con éxito!");
+        alert("¡Publicada! Se guardaron " + evaluationData.criteria.length + " preguntas con sus opciones.");
+        console.log("Datos enviados:", evaluationData);
     }
 });
