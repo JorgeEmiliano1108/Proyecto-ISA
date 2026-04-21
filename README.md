@@ -42,12 +42,49 @@ El **Sistema ISA** es una plataforma backend para digitalizar el proceso de eval
 | 1.8 | Permisos RBAC | ✅ Completado | IsAdminOrContraloria |
 | 1.9 | Django Admin | ✅ Completado | `/admin/` |
 
-### ⏳ Fase 2 Pendiente
+### ✅ Fase 2 Completada: Evaluation Core Service
 
-- Máquina de estados con django-fsm (DRAFT → SUBMITTED → PENDING_APPROVAL → APPROVED → CLOSED)
-- APIs de evaluaciones con transiciones de estado
-- Snapshot financiero (captura salary_base al aprobar)
-- APIs de bonos
+| # | Componente | Estado | Archivo |
+|---|------------|--------|---------|
+| 2.1 | Permisos a nivel de objeto | ✅ Completado | `apps/evaluations/permissions.py` |
+| 2.2 | Lógica de negocio (State Machine) | ✅ Completado | `apps/evaluations/services.py` |
+| 2.3 | Serializers (lectura/escritura) | ✅ Completado | `apps/evaluations/serializers.py` |
+| 2.4 | Vistas (ViewSet + acciones) | ✅ Completado | `apps/evaluations/views.py` |
+| 2.5 | Rutas API | ✅ Completado | `apps/evaluations/urls.py` |
+| 2.6 | Tests unitarios | ✅ Completado | `apps/evaluations/tests.py` |
+
+### Endpoints de Evaluaciones
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/v1/evaluations/` | Listar evaluaciones |
+| POST | `/api/v1/evaluations/` | Crear evaluación |
+| GET | `/api/v1/evaluations/{id}/` | Ver evaluación |
+| PUT/PATCH | `/api/v1/evaluations/{id}/` | Actualizar evaluación |
+| POST | `/api/v1/evaluations/{id}/submit/` | Enviar (DRAFT → SUBMITTED) |
+| POST | `/api/v1/evaluations/{id}/approve/` | Aprobar → APPROVED |
+| POST | `/api/v1/evaluations/{id}/reject/` | Rechazar → DRAFT |
+| GET | `/api/v1/evaluations/transitions/?estado=DRAFT` | Ver transiciones disponibles |
+
+### Tests de Evaluación
+
+| Test | Descripción |
+|------|-------------|
+| `test_empleado_puede_ver_su_propia_evaluacion` | Verifica acceso propio |
+| `test_empleado_no_puede_acceder_evaluacion_ajena` | Verifica permisos |
+| `test_manager_puede_ver_evaluacion_de_subordinado` | Verifica jerarquía |
+| `test_submit_exitoso` | Happy path: DRAFT → SUBMITTED |
+| `test_estado_protegido_no_editable_via_put` | Estado inmutable por API |
+| `test_reject_sin_comentario_falla` | Validación: comentario requerido |
+| `test_reject_comentario_corto_falla` | Validación: min 10 caracteres |
+| `test_reject_con_comentario_valido_exitoso` | Rechazo válido |
+| `test_flujo_completo_happy_path` | DRAFT → SUBMITTED → APPROVED |
+
+### ⏳ Fase 3 Pendiente: Firmas Electrónicas
+
+- Implementación de firmas digitales (Base64 Canvas)
+- Generación de documentos PDF
+- Integración con flujo de aprobación
 
 ---
 
@@ -78,15 +115,16 @@ Proyecto-ISA/
 │   │   ├── urls.py                    # Rutas con DefaultRouter
 │   │   └── admin.py                  # Admin para catálogos
 │   │
-│   ├── evaluations/                   # 📍 DOMINIO: Evaluaciones (Pendiente)
+│   ├── evaluations/                   # 📍 DOMINIO: Evaluaciones (COMPLETO)
 │   │   ├── __init__.py
 │   │   ├── apps.py
 │   │   ├── models.py                  # Evaluaciones, CompetenciasDetalle, Objetivos
-│   │   ├── serializers.py             # [POR CREAR]
-│   │   ├── views.py                   # [POR CREAR] ViewSets con FSM
-│   │   ├── services.py                # [POR CREAR] Lógica de State Machine
-│   │   ├── selectors.py               # [POR CREAR] Queries optimizadas
-│   │   └── urls.py                    # [POR CREAR]
+│   │   ├── serializers.py             # ✅ EvaluacionSerializer, Create, Update, Transition
+│   │   ├── views.py                   # ✅ EvaluacionViewSet con acciones
+│   │   ├── services.py               # ✅ EvaluationService (State Machine)
+│   │   ├── permissions.py            # ✅ IsManagerOrContraloriaOrSelf
+│   │   ├── urls.py                   # ✅ Rutas API
+│   │   └── tests.py                   # ✅ Tests unitarios
 │   │
 │   ├── finances/                      # 📍 DOMINIO: Finanzas y Bonos (Pendiente)
 │   │   ├── __init__.py
