@@ -1,38 +1,72 @@
-.text-dark-blue { color: #1e3a5f; }
-.bg-light-blue { background-color: #eef4ff; }
-.bg-light-green { background-color: #e6f9ed; }
+/* --- Variables y Colores de ISA Corporativo --- */
+:root {
+    --primary-blue: #0d6efd;
+    --dark-blue: #1e3a5f;
+    --light-blue-bg: #eef4ff;
+    --success-green: #1a7a4c;
+    --danger-red: #b02a2a;
+    --text-muted: #6c757d;
+}
 
+/* --- Tipografía y Títulos --- */
+.text-dark-blue { 
+    color: var(--dark-blue) !important; 
+}
+
+.bg-light-blue { 
+    background-color: var(--light-blue-bg) !important; 
+}
+
+.bg-light-green { 
+    background-color: #e6f9ed !important; 
+}
+
+.bg-danger-subtle { 
+    background-color: #feecec !important; 
+}
+
+/* Fondo degradado para la Revisión Rápida */
 .bg-light-blue-gradient {
     background: linear-gradient(180deg, #f8faff 0%, #f0f4fc 100%);
 }
 
+/* --- Pestañas de Filtrado (Tabs) --- */
 .filter-link {
     text-decoration: none;
-    color: #6c757d;
+    color: var(--text-muted);
     font-weight: 600;
     font-size: 0.95rem;
     padding-bottom: 10px;
     border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.filter-link:hover {
+    color: var(--primary-blue);
 }
 
 .filter-link.active {
-    color: #0d6efd;
-    border-bottom: 2px solid #0d6efd;
+    color: var(--primary-blue);
+    border-bottom: 2px solid var(--primary-blue);
 }
 
+/* --- Tarjetas de Solicitud --- */
 .card-solicitud {
     border-radius: 15px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease-in-out;
     border: 1px solid transparent !important;
+    background-color: #ffffff;
 }
 
 .card-solicitud:hover {
     background-color: #f8faff;
     border-color: #eef4ff !important;
-    transform: translateY(-2px);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
 }
 
+/* Contenedor de Iconos */
 .icon-box {
     width: 48px;
     height: 48px;
@@ -43,17 +77,59 @@
     font-size: 1.3rem;
 }
 
-.bg-danger-subtle { background-color: #feecec !important; }
+/* --- Tabla de Historial --- */
+.table thead th {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-bottom: 2px solid #eef4ff !important;
+}
 
-/* Status Pills para el Historial */
+.table tbody td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+/* --- Status Pills (Resultados) --- */
 .pill-approved {
-    background-color: #d1f2e2;
-    color: #1a7a4c;
+    background-color: #d1f2e2 !important;
+    color: var(--success-green) !important;
     border-radius: 20px;
+    font-weight: 600;
 }
 
 .pill-denied {
-    background-color: #fce8e8;
-    color: #b02a2a;
+    background-color: #fce8e8 !important;
+    color: var(--danger-red) !important;
     border-radius: 20px;
+    font-weight: 600;
+}
+
+/* --- Ajustes del Panel Lateral (Sticky) --- */
+.sticky-top {
+    z-index: 10;
+}
+
+/* Estilo para los labels dentro de los detalles */
+label.small {
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+/* Animación suave para la carga de datos */
+#lista-solicitudes, #detalle-revision, #lista-historial {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsivo --- */
+@media (max-width: 991px) {
+    .sticky-top {
+        position: relative !important;
+        top: 0 !important;
+        margin-top: 2rem;
+    }
 }

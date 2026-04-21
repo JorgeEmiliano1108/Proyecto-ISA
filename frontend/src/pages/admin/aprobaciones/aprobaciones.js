@@ -1,4 +1,7 @@
-// Simulación de datos (Traducidos al español)
+// --- DATOS GLOBALES (Simulación de base de datos) ---
+let todasLasSolicitudes = [];
+let todoElHistorial = [];
+
 const SolicitudesService = {
     async getPendientes() {
         return [
@@ -48,23 +51,63 @@ const SolicitudesService = {
     },
     async getHistorial() {
         return [
-            { entidad: 'Bono de Lanzamiento de Producto', accion: 'Pago Financiero', fecha: '21 Oct, 2023', resultado: 'APROBADO', statusClass: 'pill-approved', aprobador: 'Alex Mercer' },
-            { entidad: 'Acceso Remoto VPN', accion: 'Política de Seguridad', fecha: '20 Oct, 2023', resultado: 'RECHAZADO', statusClass: 'pill-denied', aprobador: 'Alex Mercer' },
-            { entidad: 'Expansión de Equipo Dev', accion: 'Asignación de Recursos', fecha: '19 Oct, 2023', resultado: 'APROBADO', statusClass: 'pill-approved', aprobador: 'Alex Mercer' }
+            { entidad: 'Bono de Lanzamiento de Producto', tipo: 'BONO', accion: 'Pago Financiero', fecha: '21 Oct, 2023', resultado: 'APROBADO', statusClass: 'pill-approved', aprobador: 'Alex Mercer' },
+            { entidad: 'Acceso Remoto VPN', tipo: 'ACTUALIZACIÓN', accion: 'Política de Seguridad', fecha: '20 Oct, 2023', resultado: 'RECHAZADO', statusClass: 'pill-denied', aprobador: 'Alex Mercer' },
+            { entidad: 'Expansión de Equipo Dev', tipo: 'ACTUALIZACIÓN', accion: 'Asignación de Recursos', fecha: '19 Oct, 2023', resultado: 'APROBADO', statusClass: 'pill-approved', aprobador: 'Alex Mercer' }
         ];
     }
 };
 
+// --- INICIALIZACIÓN ---
 document.addEventListener("DOMContentLoaded", async () => {
-    const solicitudes = await SolicitudesService.getPendientes();
-    const historial = await SolicitudesService.getHistorial();
+    // Carga inicial de datos
+    todasLasSolicitudes = await SolicitudesService.getPendientes();
+    todoElHistorial = await SolicitudesService.getHistorial();
     
-    renderizarLista(solicitudes);
-    renderizarHistorial(historial);
-
-    // Cargar la primera solicitud por defecto
-    if(solicitudes.length > 0) verDetalle(1);
+    // Mostramos todo por defecto
+    filtrarSolicitudes('TODAS');
 });
+
+// --- LÓGICA DE FILTRADO ---
+function filtrarSolicitudes(categoria, event) {
+    if (event) event.preventDefault();
+
+    // 1. Gestionar estado visual de las pestañas
+    document.querySelectorAll('.filter-link').forEach(link => link.classList.remove('active'));
+    
+    if (event) {
+        event.target.classList.add('active');
+    } else {
+        document.getElementById('filter-all').classList.add('active');
+    }
+
+    // 2. Filtrar y Renderizar Solicitudes Pendientes
+    const solicitudesFiltradas = categoria === 'TODAS' 
+        ? todasLasSolicitudes 
+        : todasLasSolicitudes.filter(s => s.tipo === categoria);
+    
+    renderizarLista(solicitudesFiltradas);
+
+    // 3. Filtrar y Renderizar Historial
+    const historialFiltrado = categoria === 'TODAS'
+        ? todoElHistorial
+        : todoElHistorial.filter(h => h.tipo === categoria);
+    
+    renderizarHistorial(historialFiltrado);
+
+    // 4. Actualizar el panel de "Revisión Rápida"
+    if (solicitudesFiltradas.length > 0) {
+        verDetalle(solicitudesFiltradas[0].id);
+    } else {
+        document.getElementById('detalle-revision').innerHTML = `
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted fs-1"></i>
+                <p class="text-muted mt-2">No hay solicitudes pendientes en esta categoría.</p>
+            </div>`;
+    }
+}
+
+// --- RENDERIZADO DE COMPONENTES ---
 
 function renderizarLista(items) {
     const contenedor = document.getElementById('lista-solicitudes');
@@ -89,9 +132,9 @@ function renderizarLista(items) {
     `).join('');
 }
 
-async function verDetalle(id) {
-    const solicitudes = await SolicitudesService.getPendientes();
-    const item = solicitudes.find(s => s.id === id);
+function verDetalle(id) {
+    const item = todasLasSolicitudes.find(s => s.id === id);
+    if (!item) return;
     
     const detalle = document.getElementById('detalle-revision');
     detalle.innerHTML = `
@@ -126,6 +169,17 @@ async function verDetalle(id) {
 
 function renderizarHistorial(items) {
     const contenedor = document.getElementById('lista-historial');
+    
+    if (items.length === 0) {
+        contenedor.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                    No hay registros históricos para esta categoría.
+                </td>
+            </tr>`;
+        return;
+    }
+
     contenedor.innerHTML = items.map(item => `
         <tr style="border-bottom: 1px solid #eef4ff;">
             <td class="py-3 px-4 fw-bold text-dark-blue">${item.entidad}</td>
@@ -138,3 +192,47 @@ function renderizarHistorial(items) {
         </tr>
     `).join('');
 }
+
+// --- LÓGICA DE ACCIONES (APROBAR/RECHAZAR) ---
+
+// Función para procesar la acción
+async function procesarAccion(esAprobado) {
+    const detalleContenedor = document.getElementById('detalle-revision');
+    const tituloSolicitud = detalleContenedor.querySelector('p.fw-bold')?.innerText;
+    const nombreSolicitante = detalleContenedor.querySelector('h6.fw-bold')?.innerText;
+
+    if (!tituloSolicitud) {
+        alert("Por favor, selecciona una solicitud primero.");
+        return;
+    }
+
+    const accion = esAprobado ? "APROBAR" : "RECHAZAR";
+    const confirmacion = confirm(`¿Estás seguro de que deseas ${accion} la solicitud de ${nombreSolicitante}?`);
+
+    if (confirmacion) {
+        // Simulamos la llamada al servidor de ISA Corporativo
+        console.log(`Enviando decisión a Auditoría: ${accion} - ${tituloSolicitud}`);
+        
+        // Efecto visual de carga en el botón
+        const btnId = esAprobado ? 'btn-confirmar' : 'btn-rechazar';
+        const btnOriginalText = document.getElementById(btnId).innerText;
+        document.getElementById(btnId).innerText = "Procesando...";
+        document.getElementById(btnId).disabled = true;
+
+        // Simulamos un retraso de red
+        setTimeout(() => {
+            alert(`Solicitud de "${tituloSolicitud}" ha sido ${esAprobado ? 'APROBADA' : 'RECHAZADA'} con éxito.\nLa acción se ha registrado en la auditoría del sistema.`);
+            
+            // Restauramos el botón
+            document.getElementById(btnId).innerText = btnOriginalText;
+            document.getElementById(btnId).disabled = false;
+
+            // Aquí podrías recargar la lista o quitar el elemento, 
+            // por ahora solo notificamos como en el módulo de Publicar.
+        }, 1000);
+    }
+}
+
+// Asignación de eventos a los botones existentes
+document.getElementById('btn-confirmar').addEventListener('click', () => procesarAccion(true));
+document.getElementById('btn-rechazar').addEventListener('click', () => procesarAccion(false));
