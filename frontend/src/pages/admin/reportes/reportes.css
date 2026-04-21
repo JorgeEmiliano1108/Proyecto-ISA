@@ -1,7 +1,7 @@
 .text-dark-blue { color: #1e3a5f; }
 
 .icon-stat {
-    font-size: 1.4rem; /* Un poco más grande para que el icono bi resalte */
+    font-size: 1.4rem;
     opacity: 0.8;
 }
 
@@ -21,3 +21,8 @@
 /* Colores suaves para los badges de estado */
 .bg-success-subtle { background-color: #e6f9ed !important; }
 .bg-warning-subtle { background-color: #fff8e6 !important; }
+
+/* Asegurar que el canvas mantenga altura */
+canvas {
+    max-height: 250px !important;
+}
