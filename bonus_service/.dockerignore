@@ -1,0 +1,47 @@
+# Git
+.git
+.github
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.env/
+*.egg-info
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets (seguridad - se injectan por Docker Secrets)
+secrets/
+
+# Entornos locales
+.env
+.env.local
+.env.example
+
+# Alembic
+alembic/versions/*.py
+
+# Logs
+*.log
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Documentation (no necesaria en contenedor)
+docs/
+*.md
+README.md
+REQUIREMENTS.md

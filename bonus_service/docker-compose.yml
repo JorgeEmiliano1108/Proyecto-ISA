@@ -1,0 +1,86 @@
+services:
+  bonus_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: bonus_api
+    ports:
+      - "8002:8002"
+    env_file: .env
+    secrets:
+      - db_password
+      - secret_key
+      - encryption_key
+      - jwt_public_key
+    depends_on:
+      bonus_redis:
+        condition: service_healthy
+    networks:
+      - isa_network
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/bonus/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  bonus_celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: bonus_celery_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    env_file: .env
+    secrets:
+      - db_password
+      - secret_key
+      - encryption_key
+      - jwt_public_key
+    depends_on:
+      - bonus_redis
+    networks:
+      - isa_network
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  bonus_redis:
+    image: redis:7-alpine
+    container_name: bonus_redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - isa_network
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  secret_key:
+    file: ./secrets/secret_key
+  encryption_key:
+    file: ./secrets/encryption_key
+  jwt_public_key:
+    file: ./secrets/jwt_public_key
+
+networks:
+  isa_network:
+    external: true

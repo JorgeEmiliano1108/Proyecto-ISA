@@ -1,0 +1,29 @@
+# Secrets (nunca subir al git)
+secrets/
+
+# Archivos de entorno
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.env/
+
+# Docker
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Alembic / Migraciones (opcional)
+alembic/versions/*.py
+audit.md
+requisitos.md
