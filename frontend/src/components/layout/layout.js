@@ -19,62 +19,61 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isAdmin) {
         sidebarLinks = `
             <a href="../../admin/dashboard/dashboard.html" class="sidebar-link">
-                <i class="bi bi-grid-1x2 fs-5"></i> Dashboard
+                <i class="bi bi-grid-1x2"></i> <span class="link-text">Dashboard</span>
             </a>
             <a href="../../admin/usuarios/usuarios.html" class="sidebar-link">
-                <i class="bi bi-people fs-5"></i> Usuarios
+                <i class="bi bi-people"></i> <span class="link-text">Usuarios</span>
             </a>
             <a href="../../admin/catalogos/catalogos.html" class="sidebar-link">
-                <i class="bi bi-folder2-open fs-5"></i> Catálogos
+                <i class="bi bi-folder2-open"></i> <span class="link-text">Catálogos</span>
             </a>
             <a href="../../admin/evaluaciones/evaluaciones.html" class="sidebar-link">
-                <i class="bi bi-ui-checks fs-5"></i> Evaluaciones
+                <i class="bi bi-ui-checks"></i> <span class="link-text">Evaluaciones</span>
             </a>
             <a href="../../admin/aprobaciones/aprobaciones.html" class="sidebar-link">
-                <i class="bi bi-patch-check fs-5"></i> Aprobaciones
+                <i class="bi bi-patch-check"></i> <span class="link-text">Aprobaciones</span>
             </a>
             <a href="../../admin/reportes/reportes.html" class="sidebar-link">
-                <i class="bi bi-bar-chart fs-5"></i> Reportes
+                <i class="bi bi-bar-chart"></i> <span class="link-text">Reportes</span>
             </a>
             <a href="../../admin/bonos/bonos.html" class="sidebar-link">
-                <i class="bi bi-cash-stack fs-5"></i> Bonos
+                <i class="bi bi-cash-stack"></i> <span class="link-text">Bonos</span>
             </a>
             <a href="../../admin/consultas/consultas.html" class="sidebar-link">
-                <i class="bi bi-chat-dots fs-5"></i> Aclaraciones
+                <i class="bi bi-chat-dots"></i> <span class="link-text">Aclaraciones</span>
             </a>
         `;
     } else {
         sidebarLinks = `
             <a href="../../usuario/dashboard/dashboard.html" class="sidebar-link">
-                <i class="bi bi-grid-1x2 fs-5"></i> Mi Resumen
+                <i class="bi bi-grid-1x2"></i> <span class="link-text">Mi Resumen</span>
             </a>
             <a href="../../usuario/evaluaciones/evaluaciones.html" class="sidebar-link">
-                <i class="bi bi-ui-checks fs-5"></i> Mis Evaluaciones
+                <i class="bi bi-ui-checks"></i> <span class="link-text">Mis Evaluaciones</span>
             </a>
             <a href="../../usuario/bonos/bonos.html" class="sidebar-link">
-                <i class="bi bi-cash-stack fs-5"></i> Mis Bonos
+                <i class="bi bi-cash-stack"></i> <span class="link-text">Mis Bonos</span>
             </a>
             <a href="../../usuario/reportes/reportes.html" class="sidebar-link">
-                <i class="bi bi-bar-chart fs-5"></i> Mis Reportes
+                <i class="bi bi-bar-chart"></i> <span class="link-text">Mis Reportes</span>
             </a>
         `;
     }
 
     container.innerHTML = `
         <aside class="sidebar shadow-sm">
-            <div class="sidebar-logo text-center">
+            <div class="sidebar-logo">
                 <h4 class="fw-bold mb-0">ISA</h4>
-                <h5 class="fw-bold mb-0">CORPORATIVO</h5>
-                <p class="text-muted mt-1" style="font-size: 0.8rem;">Sistema de Gestión</p>
+                <h4 class="fw-bold mb-0 logo-corp">CORPORATIVO</h4>
             </div>
             
-            <div class="nav flex-column mt-4">
+            <div class="nav flex-column mt-2">
                 ${sidebarLinks}
             </div>
         </aside>
 
         <nav class="top-navbar shadow-sm">
-            <div class="d-flex align-items-center w-50">
+            <div class="d-flex align-items-center w-50 gap-3">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 border-light-subtle px-3">
                         <i class="bi bi-search text-muted"></i>
@@ -85,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="d-flex align-items-center gap-4">
                 
-                <div class="d-flex align-items-center gap-2 text-secondary" style="cursor: pointer;">
+                <div class="d-flex align-items-center gap-4 text-secondary" style="cursor: pointer;">
                     <div id="navbar-notificaciones"></div>
                     <div class="hover-icon" onclick="abrirModalPerfil()"><i class="bi bi-gear fs-5 text-dark"></i></div>
                     <div id="navbar-ayuda"></div>
@@ -146,11 +145,15 @@ function initNavBarIcons(isAdmin) {
         dropdownNotif.className = 'dropdown-menu dropdown-menu-end shadow border-0 mt-3';
         dropdownNotif.style.cssText = 'width: 350px; max-height: 400px; overflow-y: auto; border-radius: 10px;';
         dropdownNotif.id = 'dropdown-nav-notif';
-        dropdownNotif.innerHTML = renderNotificacionesDropdown();
+        dropdownNotif.innerHTML = typeof renderNotificacionesDropdown === 'function' ? renderNotificacionesDropdown() : '';
         document.getElementById('navbar-notificaciones').appendChild(dropdownNotif);
     } else {
-        document.getElementById('navbar-notificaciones').innerHTML = renderNotificacionesDropdown();
-        document.getElementById('navbar-ayuda').innerHTML = renderDropdownAyuda();
+        if(typeof renderNotificacionesDropdown === 'function') {
+            document.getElementById('navbar-notificaciones').innerHTML = renderNotificacionesDropdown();
+        }
+        if(typeof renderDropdownAyuda === 'function') {
+            document.getElementById('navbar-ayuda').innerHTML = renderDropdownAyuda();
+        }
     }
 }
 

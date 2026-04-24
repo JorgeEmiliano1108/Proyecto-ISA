@@ -1,76 +1,130 @@
 /* Variables Globales */
 :root {
-    --sidebar-width: 250px;
-    --primary-color: #1e40af; /* Color por defecto que será sobreescrito por JS */
+    --sidebar-collapsed: 80px;
+    --sidebar-expanded: 260px;
+    --primary-color: #1e40af; 
 }
 
-/* Sidebar Fijo */
+/* Sidebar Fijo con Hover */
 .sidebar {
-    width: var(--sidebar-width);
+    width: var(--sidebar-collapsed);
     height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
-    background-color: #ffffff;
-    border-right: 1px solid #e0e0e0;
-    z-index: 1000;
+    
+    /* --- FONDO MÁS COLORIDO (85% blanco en lugar de 95%) --- */
+    background-color: var(--primary-color);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
+    border-right: 1px solid rgba(0, 0, 0, 0.08); 
+    
+    z-index: 1050; 
     overflow-y: auto;
-    padding-top: 20px;
+    overflow-x: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s ease, 
+                background-color 0.3s ease;
 }
 
+/* Al pasar el cursor, se expande y crea una sombra flotante */
+.sidebar:hover {
+    width: var(--sidebar-expanded);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1); 
+}
+
+/* --- LOGO --- */
 .sidebar-logo {
-    padding: 0 20px 20px 20px;
-    border-bottom: 1px solid #e0e0e0;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap; 
+    overflow: hidden;
 }
 
-/* Aplicamos el color dinámico al nombre del corporativo para que resalte */
-.sidebar-logo h4, .sidebar-logo h5 {
+.sidebar-logo h4 {
     color: var(--primary-color);
     transition: color 0.3s ease;
+    font-size: 1.25rem; 
+    line-height: 1.1;
+    /* Un pequeño filtro para que el logo resalte más sobre el fondo de color */
+    filter: brightness(0.8);
 }
 
+/* --- ENLACES DEL SIDEBAR --- */
 .sidebar-link {
-    color: #495057;
-    padding: 12px 20px;
+    color: #334155; /* Texto un poquito más oscuro para mejor lectura */
+    padding: 12px 0; 
     border-radius: 8px;
-    margin: 5px 15px;
+    margin: 5px 10px; 
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 10px;
     text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
-/* Ajuste de estados Hover y Activo */
+.sidebar-link i {
+    font-size: 1.4rem !important;
+    min-width: 60px; 
+    text-align: center;
+}
+
+/* Cuando pasas el ratón o estás en la página actual */
 .sidebar-link:hover,
 .sidebar-link.active {
-    background-color: rgba(var(--primary-color-rgb, 30, 64, 175), 0.1); /* Fondo sutil del color elegido */
+    /* Fondo blanco semitransparente para que resalte hermoso sobre la barra coloreada */
+    background-color: rgba(255, 255, 255, 0.6); 
     color: var(--primary-color);
     font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
-/* Barra superior (Navbar) */
+/* --- ANIMACIÓN DE LOS TEXTOS --- */
+.link-text,
+.logo-corp {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.sidebar:hover .link-text,
+.sidebar:hover .logo-corp {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s; 
+}
+
+/* --- BARRA SUPERIOR (Navbar) --- */
 .top-navbar {
     position: fixed;
     top: 0;
-    left: var(--sidebar-width);
+    left: var(--sidebar-collapsed); 
     right: 0;
     height: 70px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e0e0e0;
+    
+    /* --- FONDO MÁS COLORIDO AQUÍ TAMBIÉN --- */
+    background-color: var(--primary-color);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    
     padding: 0 30px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     z-index: 999;
+    transition: background-color 0.3s ease;
 }
 
-/* Contenido Principal */
+/* --- CONTENIDO PRINCIPAL --- */
 .page-content {
-    margin-left: var(--sidebar-width);
+    margin-left: var(--sidebar-collapsed);
     margin-top: 70px;
     padding: 30px;
     min-height: calc(100vh - 70px);
+    background-color: #f1f5f9; /* Fondo clarito para hacer contraste con las barras coloreadas */
 }
 
 /* Iconos de la Navbar */
@@ -86,7 +140,6 @@
     color: var(--primary-color) !important;
 }
 
-/* Ajuste para el badge de notificaciones para que combine */
 .top-navbar .badge {
     background-color: var(--primary-color) !important;
 }
