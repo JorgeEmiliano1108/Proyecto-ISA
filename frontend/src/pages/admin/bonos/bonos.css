@@ -1,50 +1,154 @@
-/* --- Estilos de las Tarjetas de Programas --- */
+/* --- VARIABLES Y BASES --- */
+:root {
+    --isa-primary: #0d6efd;
+    --isa-dark-blue: #1e3a5f;
+    --isa-bg-light: #f8f9fa;
+    --isa-success: #198754;
+    --isa-border-radius: 15px;
+    --isa-transition: all 0.3s ease;
+}
+
+body {
+    background-color: var(--isa-bg-light);
+    color: #444;
+}
+
+/* --- TARJETAS DE MÉTRICAS (PROGRAMAS) --- */
 .card-stat {
-    border-radius: 15px; /* Bordes redondeados según tu diseño */
-    transition: transform 0.2s ease; /* Suavidad para el movimiento */
+    border-radius: var(--isa-border-radius);
+    transition: var(--isa-transition);
+    border: 1px solid transparent;
+    cursor: pointer;
 }
 
 .card-stat:hover {
-    transform: translateY(-5px); /* Efecto de levante al pasar el mouse */
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(13, 110, 253, 0.2);
 }
 
+/* Estilo para la tarjeta azul principal */
+.bg-primary.card-stat {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+}
+
+/* --- ICONOS Y CÍRCULOS --- */
 .icon-circle {
-    width: 50px; /* Tamaño ajustado para que se vea más estilizado */
-    height: 50px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px; /* Forma cuadrada redondeada en lugar de círculo perfecto */
-    font-size: 1.5rem;
+    border-radius: 12px;
+    font-size: 1.4rem;
 }
 
-.text-dark-blue { color: #1e3a5f; }
-.bg-light-blue { background-color: #eef4ff; color: #0d6efd; }
+.bg-light-blue {
+    background-color: #eef4ff;
+    color: var(--isa-primary);
+}
 
-/* Colores de Badges */
-.bg-success-subtle { background-color: #e6f9ed; }
-.bg-secondary-subtle { background-color: #f0f1f2; }
+.text-dark-blue {
+    color: var(--isa-dark-blue);
+}
 
-/* --- Tablas de Empleados --- */
-.table {
-    border-radius: 8px;
+/* --- TABLA DE ASIGNACIONES --- */
+.table-responsive {
+    border-radius: 10px;
+}
+
+.table thead th {
+    background-color: #fcfcfc;
+    border-bottom: 2px solid #f1f1f1;
+    color: #888;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 18px 15px;
+}
+
+.table tbody td {
+    padding: 20px 15px;
+    border-bottom: 1px solid #f1f1f1;
+    vertical-align: middle;
+}
+
+/* Efecto hover en filas */
+.table-hover tbody tr:hover {
+    background-color: #fbfcfe;
+}
+
+/* --- MODALES PROFESIONALES --- */
+.modal-content {
+    border-radius: 20px;
+    border: none;
     overflow: hidden;
 }
 
-.table th {
-    font-weight: 600;
-    color: #6c757d;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 1px;
+.modal-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #f1f1f1;
 }
 
-/* Colores de progreso */
-.progress-bar.bg-success { background-color: #198754; }
-.progress-bar.bg-primary { background-color: #0d6efd; }
-.progress-bar.bg-danger { background-color: #dc3545; }
+.modal-header.bg-light {
+    background-color: #fcfcfc !important;
+}
 
-.text-success { color: #198754; }
-.text-danger { color: #dc3545; }
+.modal-body {
+    padding: 30px !important;
+}
 
-.cursor-pointer { cursor: pointer; }
+.modal-footer {
+    padding: 20px 30px;
+    background-color: #fcfcfc;
+}
+
+/* --- COMPONENTES DE UI --- */
+.badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.bg-success-subtle {
+    background-color: #e6f4ea !important;
+    color: var(--isa-success) !important;
+}
+
+.bg-secondary-subtle {
+    background-color: #f0f1f2 !important;
+    color: #6c757d !important;
+}
+
+/* Formulario dentro de modales */
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 12px 15px;
+    border: 1px solid #e9ecef;
+    font-size: 0.9rem;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    border-color: var(--isa-primary);
+}
+
+/* --- UTILIDADES --- */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.fw-bold {
+    color: var(--isa-dark-blue);
+}
+
+/* Animación para barras de progreso */
+.progress {
+    border-radius: 10px;
+    background-color: #eef1f4;
+}
+
+.progress-bar-animated {
+    transition: width 1s ease-in-out;
+}
