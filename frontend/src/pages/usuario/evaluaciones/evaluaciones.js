@@ -2,24 +2,41 @@
  * SERVICIO DE EVALUACIONES (Capa de Datos)
  */
 const EvaluacionesUserService = {
-    // Trae las encuestas que el usuario aún no contesta
     async getPendientes() {
-        // En backend: SELECT * FROM evaluaciones WHERE estado = 'PENDIENTE' AND usuario_id = ?
         return [
             { id: 201, titulo: "Autoevaluación Mensual - Octubre", limite: "Oct 25, 2023", categoria: "Cultura" },
             { id: 202, titulo: "Feedback 360: Equipo TI", limite: "Oct 28, 2023", categoria: "Liderazgo" }
         ];
     },
 
-    // Trae el histórico de lo que ya se calificó
     async getHistorial() {
-        // En backend: SELECT * FROM resultados WHERE usuario_id = ?
         return [
             { id: 50, titulo: "Evaluación Técnica Q3", fecha: "Sep 15, 2023", evaluador: "Sistema / IA", score: 4.8 },
             { id: 48, titulo: "Soft Skills", fecha: "Ago 02, 2023", evaluador: "Admin Corp", score: 5.0 }
         ];
     }
 };
+
+let grillaISA = null;
+
+function abrirGrillaEvaluacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalGrilla'));
+    modal.show();
+    
+    setTimeout(() => {
+        if (!grillaISA) {
+            grillaISA = new GrillaISA('grilla-evaluacion-container', {
+                evaluacionId: '2025-Q1',
+                periodo: 'Q1 2025',
+                readOnly: false,
+                onSave: (data) => {
+                    console.log('Evaluación guardada:', data);
+                    document.getElementById('stat-ultimo-cambio').textContent = new Date().toLocaleTimeString();
+                }
+            });
+        }
+    }, 100);
+}
 
 /**
  * CONTROLADOR
