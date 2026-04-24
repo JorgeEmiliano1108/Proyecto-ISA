@@ -13,7 +13,7 @@
     top: 0;
     left: 0;
     
-    /* --- FONDO MÁS COLORIDO (85% blanco en lugar de 95%) --- */
+    /* Fondo tintado */
     background-color: var(--primary-color);
     background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
     border-right: 1px solid rgba(0, 0, 0, 0.08); 
@@ -26,7 +26,6 @@
                 background-color 0.3s ease;
 }
 
-/* Al pasar el cursor, se expande y crea una sombra flotante */
 .sidebar:hover {
     width: var(--sidebar-expanded);
     box-shadow: 4px 0 15px rgba(0,0,0,0.1); 
@@ -48,13 +47,12 @@
     transition: color 0.3s ease;
     font-size: 1.25rem; 
     line-height: 1.1;
-    /* Un pequeño filtro para que el logo resalte más sobre el fondo de color */
     filter: brightness(0.8);
 }
 
 /* --- ENLACES DEL SIDEBAR --- */
 .sidebar-link {
-    color: #334155; /* Texto un poquito más oscuro para mejor lectura */
+    color: #334155; 
     padding: 12px 0; 
     border-radius: 8px;
     margin: 5px 10px; 
@@ -72,10 +70,8 @@
     text-align: center;
 }
 
-/* Cuando pasas el ratón o estás en la página actual */
 .sidebar-link:hover,
 .sidebar-link.active {
-    /* Fondo blanco semitransparente para que resalte hermoso sobre la barra coloreada */
     background-color: rgba(255, 255, 255, 0.6); 
     color: var(--primary-color);
     font-weight: 600;
@@ -104,18 +100,16 @@
     left: var(--sidebar-collapsed); 
     right: 0;
     height: 70px;
-    
-    /* --- FONDO MÁS COLORIDO AQUÍ TAMBIÉN --- */
     background-color: var(--primary-color);
     background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    
     padding: 0 30px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     z-index: 999;
-    transition: background-color 0.3s ease;
+    /* Añadimos 'left' a la transición para que se empuje suavemente */
+    transition: background-color 0.3s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- CONTENIDO PRINCIPAL --- */
@@ -124,7 +118,21 @@
     margin-top: 70px;
     padding: 30px;
     min-height: calc(100vh - 70px);
-    background-color: #f1f5f9; /* Fondo clarito para hacer contraste con las barras coloreadas */
+    background-color: #f1f5f9; 
+    /* Añadimos transición para que el contenido se empuje suavemente */
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================
+   MAGIA PARA EMPUJAR EL CONTENIDO
+   Si la sidebar tiene hover, empujamos el navbar y el contenido 
+   ========================================================= */
+body:has(.sidebar:hover) .top-navbar {
+    left: var(--sidebar-expanded);
+}
+
+body:has(.sidebar:hover) .page-content {
+    margin-left: var(--sidebar-expanded);
 }
 
 /* Iconos de la Navbar */
