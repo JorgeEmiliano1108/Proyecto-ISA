@@ -1,0 +1,456 @@
+/* 
+ * GRILLA ISA - Estilos Mejorados para la Grilla Dinámica de Evaluaciones 
+ * Diseño Moderno y Legible
+ */
+
+/* Variables del tema ISA */
+:root {
+    --grilla-primary: #1e40af;
+    --grilla-primary-light: #3b82f6;
+    --grilla-primary-dark: #1e3a8a;
+    --grilla-bg: #f8fafc;
+    --grilla-border: #e2e8f0;
+    --grilla-text: #1e293b;
+    --grilla-text-muted: #64748b;
+    --grilla-success: #10b981;
+    --grilla-warning: #f59e0b;
+    --grilla-danger: #ef4444;
+    
+    /* Colores de calificación */
+    --cal-1: #fecaca;
+    --cal-1-text: #991b1b;
+    --cal-2: #fed7aa;
+    --cal-2-text: #c2410c;
+    --cal-3: #fef08a;
+    --cal-3-text: #854d0e;
+    --cal-4: #bbf7d0;
+    --cal-4-text: #166534;
+    --cal-5: #bae6fd;
+    --cal-5-text: #075985;
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.grilla-wrapper {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid var(--grilla-border);
+}
+
+/* ============================================
+   HEADER DEL MODAL
+   ============================================ */
+.grilla-modal .modal-header {
+    background: linear-gradient(135deg, var(--grilla-primary) 0%, var(--grilla-primary-light) 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 24px;
+    border: none;
+}
+
+.grilla-modal .modal-header .modal-title {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.grilla-modal .modal-header .modal-title + p {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+
+.grilla-modal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.grilla-modal .modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+/* Badge de estado */
+.estado-evaluacion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.estado-evaluacion.borrador {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.estado-evaluacion.en-proceso {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    animation: pulse-estado 2s infinite;
+}
+
+@keyframes pulse-estado {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.estado-evaluacion.completado {
+    background: var(--grilla-success);
+    color: white;
+}
+
+/* ============================================
+   TOOLBAR
+   ============================================ */
+.grilla-toolbar {
+    display: flex;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--grilla-bg);
+    border-bottom: 1px solid var(--grilla-border);
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.grilla-toolbar .btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.grilla-toolbar .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.grilla-toolbar .btn-primary {
+    background: var(--grilla-primary);
+    border-color: var(--grilla-primary);
+}
+
+.grilla-toolbar .btn-outline-secondary {
+    color: var(--grilla-text-muted);
+    border-color: var(--grilla-border);
+    background: white;
+}
+
+.grilla-toolbar .btn-outline-secondary:hover {
+    background: var(--grilla-bg);
+    border-color: var(--grilla-primary);
+    color: var(--grilla-primary);
+}
+
+.grilla-toolbar .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--grilla-border);
+    margin: 0 8px;
+}
+
+/* Leyenda de colores */
+.grilla-leyenda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--grilla-text-muted);
+}
+
+.grilla-leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.grilla-leyenda-item .color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.grilla-leyenda-item .color-dot.c1 { background: var(--cal-1); color: var(--cal-1-text); }
+.grilla-leyenda-item .color-dot.c2 { background: var(--cal-2); color: var(--cal-2-text); }
+.grilla-leyenda-item .color-dot.c3 { background: var(--cal-3); color: var(--cal-3-text); }
+.grilla-leyenda-item .color-dot.c4 { background: var(--cal-4); color: var(--cal-4-text); }
+.grilla-leyenda-item .color-dot.c5 { background: var(--cal-5); color: var(--cal-5-text); }
+
+/* ============================================
+   CONTENEDOR DE LA GRILLA
+   ============================================ */
+.grilla-container {
+    background: #fff;
+    border: none;
+}
+
+.grilla-container .handsontable {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.875rem;
+}
+
+/* Encabezados de columna */
+.grilla-container .htHeader {
+    background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: var(--grilla-text);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 8px;
+    border-bottom: 2px solid var(--grilla-primary) !important;
+}
+
+/* Encabezados de fila */
+.grilla-container .htRowHeaders {
+    background: #f8fafc;
+    color: var(--grilla-text-muted);
+    font-weight: 500;
+    border-right: 2px solid var(--grilla-border) !important;
+}
+
+/* Celdas */
+.grilla-container .wtHolder td {
+    padding: 10px 8px;
+    border-color: var(--grilla-border) !important;
+}
+
+/* Zebra rows */
+.grilla-container .ht_master .htCore tbody tr:nth-child(even) td {
+    background: #fafbfc;
+}
+
+.grilla-container .ht_master .htCore tbody tr:nth-child(even) td:hover {
+    background: #f0f7ff;
+}
+
+/* Selection */
+.grilla-container .ht_master .htCore td.htSelection {
+    background: #dbeafe !important;
+    border-color: var(--grilla-primary) !important;
+}
+
+/* ============================================
+   ESTILOS DE CELDAS POR TIPO
+   ============================================ */
+
+/* Celda # (ID) */
+.grilla-container td[data-column="0"] {
+    background: #f8fafc;
+    color: var(--grilla-text-muted);
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Celda Nombre */
+.grilla-container td[data-column="1"] {
+    font-weight: 600;
+    color: var(--grilla-text);
+}
+
+/* Celda Puesto */
+.grilla-container td[data-column="2"] {
+    color: var(--grilla-text-muted);
+    font-style: italic;
+}
+
+/* Celdas de competencias (3-8) - editables */
+.grilla-container td[data-column="3"],
+.grilla-container td[data-column="4"],
+.grilla-container td[data-column="5"],
+.grilla-container td[data-column="6"],
+.grilla-container td[data-column="7"],
+.grilla-container td[data-column="8"] {
+    text-align: center;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 6px;
+    margin: 2px;
+}
+
+.grilla-container td[data-column="3"]:hover,
+.grilla-container td[data-column="4"]:hover,
+.grilla-container td[data-column="5"]:hover,
+.grilla-container td[data-column="6"]:hover,
+.grilla-container td[data-column="7"]:hover,
+.grilla-container td[data-column="8"]:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1;
+}
+
+/* Promedio (columna 9) */
+.grilla-container td[data-column="9"] {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+    color: var(--grilla-primary);
+    font-weight: 700;
+    text-align: center;
+    border-radius: 6px;
+}
+
+/* Evaluación Global (columna 10) */
+.grilla-container td[data-column="10"] {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    color: #92400e;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 6px;
+}
+
+/* Estado (columna 11) */
+.grilla-container td[data-column="11"] {
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* ============================================
+   BARRA DE ESTADO (FOOTER)
+   ============================================ */
+.grilla-stats {
+    display: flex;
+    gap: 24px;
+    padding: 16px 24px;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-top: 1px solid var(--grilla-border);
+}
+
+.grilla-stats .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--grilla-border);
+    transition: all 0.2s ease;
+}
+
+.grilla-stats .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.grilla-stats .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.grilla-stats .stat-icon.promedio {
+    background: #dbeafe;
+    color: var(--grilla-primary);
+}
+
+.grilla-stats .stat-icon.empleados {
+    background: #dcfce7;
+    color: var(--grilla-success);
+}
+
+.grilla-stats .stat-iconTiempo {
+    background: #fef3c7;
+    color: var(--grilla-warning);
+}
+
+.grilla-stats .stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.grilla-stats .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--grilla-text);
+    line-height: 1.2;
+}
+
+.grilla-stats .stat-label {
+    font-size: 0.7rem;
+    color: var(--grilla-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* ============================================
+   MODAL FOOTER
+   ============================================ */
+.grilla-modal .modal-footer {
+    background: var(--grilla-bg);
+    border-top: 1px solid var(--grilla-border);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+.grilla-container .wtHolder::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.grilla-container .wtHolder::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 5px;
+}
+
+.grilla-container .wtHolder::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+    border-radius: 5px;
+}
+
+.grilla-container .wtHolder::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .grilla-toolbar {
+        justify-content: center;
+    }
+    
+    .grilla-leyenda {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    
+    .grilla-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .grilla-stats .stat-card {
+        min-width: 120px;
+    }
+}

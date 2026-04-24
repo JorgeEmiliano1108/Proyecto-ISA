@@ -124,3 +124,22 @@ document.getElementById('btn-publish').addEventListener('click', async () => {
         console.log("Datos enviados:", evaluationData);
     }
 });
+
+let grillaSupervision = null;
+
+function abrirSupervision() {
+    const modal = new bootstrap.Modal(document.getElementById('modalSupervision'));
+    modal.show();
+    
+    setTimeout(() => {
+        if (!grillaSupervision) {
+            grillaSupervision = new GrillaSupervisor('grilla-supervision-container', {
+                periodo: '2025-Q1'
+            });
+        }
+    }, 100);
+}
+
+function filtrarUsuarios() {
+    console.log('Filtrando usuarios...');
+}
