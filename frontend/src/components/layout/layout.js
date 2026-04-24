@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // --- 0. APLICAR TEMA DINÁMICO (Agregado) ---
     const savedColor = localStorage.getItem('isaThemeColor');
     if (savedColor) {
         document.documentElement.style.setProperty('--primary-color', savedColor);
@@ -8,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById('layout-container');
     const userData = JSON.parse(localStorage.getItem('userData'));
 
-    // Redirigir al login si no hay sesión
     if (!userData) {
         window.location.href = '../../../../index.html'; 
         return;
@@ -16,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isAdmin = userData.rol === 'admin';
 
-    // 1. Crear los enlaces dinámicos según el rol
     let sidebarLinks = "";
 
     if (isAdmin) {
@@ -42,6 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <a href="../../admin/bonos/bonos.html" class="sidebar-link">
                 <i class="bi bi-cash-stack fs-5"></i> Bonos
             </a>
+            <a href="../../admin/consultas/consultas.html" class="sidebar-link">
+                <i class="bi bi-chat-dots fs-5"></i> Aclaraciones
+            </a>
         `;
     } else {
         sidebarLinks = `
@@ -60,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
-    // 2. Inyectar tu HTML con la Navbar Mejorada
     container.innerHTML = `
         <aside class="sidebar shadow-sm">
             <div class="sidebar-logo text-center">
@@ -86,13 +85,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <div class="d-flex align-items-center gap-4">
                 
-                <div class="d-flex align-items-center gap-4 text-secondary" style="cursor: pointer;">
-                    <div class="position-relative hover-icon">
-                        <i class="bi bi-bell fs-5 text-dark"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.3em 0.5em;">3</span>
-                    </div>
-                    <div class="hover-icon d-none d-sm-block"><i class="bi bi-gear fs-5 text-dark"></i></div>
-                    <div class="hover-icon d-none d-sm-block"><i class="bi bi-question-circle fs-5 text-dark"></i></div>
+                <div class="d-flex align-items-center gap-2 text-secondary" style="cursor: pointer;">
+                    <div id="navbar-notificaciones"></div>
+                    <div class="hover-icon" onclick="abrirModalPerfil()"><i class="bi bi-gear fs-5 text-dark"></i></div>
+                    <div id="navbar-ayuda"></div>
                 </div>
                 
                 <div class="vr d-none d-md-block mx-2" style="height: 35px; align-self: center; background-color: #dee2e6; width: 2px;"></div>
@@ -113,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3" style="min-width: 180px; border-radius: 10px;">
                         <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.7rem;">Mi Cuenta</h6></li>
-                        <li><a class="dropdown-item py-2 small" href="#"><i class="bi bi-person me-2 text-muted"></i> Mi Perfil</a></li>
+                        <li><a class="dropdown-item py-2 small" href="#" onclick="abrirModalPerfil(); return false;"><i class="bi bi-person me-2 text-muted"></i> Mi Perfil</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <button class="dropdown-item text-danger fw-bold py-2 small" onclick="logout()">
@@ -128,15 +124,57 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     marcarLinkActivo();
+    initNavBarIcons(isAdmin);
 });
 
-// Función para cerrar sesión
+function initNavBarIcons(isAdmin) {
+    if (isAdmin) {
+        document.getElementById('navbar-notificaciones').innerHTML = `
+            <div class="position-relative hover-icon" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="cursor: pointer;" onclick="marcarLeidasNotif()">
+                <i class="bi bi-bell fs-5 text-dark"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.3em 0.5em; display: ${getNoLeidas() > 0 ? 'block' : 'none'};">${getNoLeidas()}</span>
+            </div>
+        `;
+        
+        document.getElementById('navbar-ayuda').innerHTML = `
+            <div class="hover-icon d-none d-sm-block" onclick="window.location.href='../../admin/consultas/consultas.html'">
+                <i class="bi bi-question-circle fs-5 text-dark" title="Aclaraciones"></i>
+            </div>
+        `;
+        
+        const dropdownNotif = document.createElement('div');
+        dropdownNotif.className = 'dropdown-menu dropdown-menu-end shadow border-0 mt-3';
+        dropdownNotif.style.cssText = 'width: 350px; max-height: 400px; overflow-y: auto; border-radius: 10px;';
+        dropdownNotif.id = 'dropdown-nav-notif';
+        dropdownNotif.innerHTML = renderNotificacionesDropdown();
+        document.getElementById('navbar-notificaciones').appendChild(dropdownNotif);
+    } else {
+        document.getElementById('navbar-notificaciones').innerHTML = renderNotificacionesDropdown();
+        document.getElementById('navbar-ayuda').innerHTML = renderDropdownAyuda();
+    }
+}
+
+function getNoLeidas() {
+    const data = localStorage.getItem('isa_notificaciones');
+    const notifs = data ? JSON.parse(data) : [];
+    return notifs.filter(n => !n.leido).length;
+}
+
+function marcarLeidasNotif() {
+    const data = localStorage.getItem('isa_notificaciones');
+    if (data) {
+        const notifs = JSON.parse(data);
+        let cambio = false;
+        notifs.forEach(n => { if (!n.leido) { n.leido = true; cambio = true; } });
+        if (cambio) localStorage.setItem('isa_notificaciones', JSON.stringify(notifs));
+    }
+}
+
 function logout() {
     localStorage.removeItem('userData');
     window.location.href = '../../../../index.html';
 }
 
-// Función extra: Marca el menú actual como activo
 function marcarLinkActivo() {
     const currentPath = window.location.pathname;
     const links = document.querySelectorAll('.sidebar-link');
