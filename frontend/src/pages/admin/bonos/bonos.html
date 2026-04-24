@@ -18,53 +18,53 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="fw-bold text-dark-blue">Arquitectura de Incentivos</h2>
-                    <p class="text-muted">Diseña, gestiona y rastrea estructuras de bonos estratégicos en toda la jerarquía de la empresa con métricas de precisión.</p>
+                    <p class="text-muted small">Diseña, gestiona y rastrea estructuras de bonos estratégicos en toda la jerarquía de la empresa.</p>
                 </div>
-                <button class="btn btn-primary px-4 shadow-sm fw-bold" id="btn-nuevo-programa">➕ NUEVO PROGRAMA DE INCENTIVOS</button>
+                <button class="btn btn-primary px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoBono">
+                    ➕ NUEVO PROGRAMA DE INCENTIVOS
+                </button>
             </div>
 
             <div class="row g-4 mb-4" id="programas-container">
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 15px;">
+                    <div class="card border-0 shadow-sm p-4 h-100 card-stat cursor-pointer" onclick="verDetalleBono('Multiplicador')">
                         <div class="d-flex justify-content-between mb-3 align-items-center">
                              <div class="icon-circle text-primary bg-light-blue">📈</div>
                              <span class="badge bg-success-subtle text-success text-uppercase small">Activo</span>
                         </div>
                         <h5 class="fw-bold mb-1">Multiplicador de Desempeño</h5>
-                        <p class="text-muted small mb-3">Cálculo: 15% del salario base anual basado en el cumplimiento trimestral de OKRs.</p>
+                        <p class="text-muted small mb-3">Cálculo: 15% del salario base anual basado en OKRs.</p>
                         <div class="d-flex gap-4">
-                            <div><span class="text-muted small text-uppercase">Participantes</span> <br><strong class="fs-5" id="participantes-1">...</strong> <span class="text-muted small">Ejecutivos</span></div>
-                            <div><span class="text-muted small text-uppercase">Utilización del Presupuesto</span> <br><strong class="fs-5" id="presupuesto-1">...</strong></div>
+                            <div><span class="text-muted small text-uppercase">Participantes</span> <br><strong class="fs-5" id="participantes-1">...</strong></div>
+                            <div><span class="text-muted small text-uppercase">Utilización</span> <br><strong class="fs-5" id="presupuesto-1">...</strong></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 15px;">
+                    <div class="card border-0 shadow-sm p-4 h-100 card-stat cursor-pointer" onclick="verDetalleBono('Hito')">
                         <div class="d-flex justify-content-between mb-3 align-items-center">
                              <div class="icon-circle text-primary bg-light-blue">🎗️</div>
                              <span class="badge bg-secondary-subtle text-secondary text-uppercase small">Planeado</span>
                         </div>
                         <h5 class="fw-bold mb-1">Hito de Retención</h5>
-                        <p class="text-muted small mb-3">Monto fijo: $25,000 pagados al completar 36 meses de antigüedad.</p>
+                        <p class="text-muted small mb-3">Monto fijo: $25,000 pagados al completar 36 meses.</p>
                         <div class="d-flex gap-4">
-                            <div><span class="text-muted small text-uppercase">Fecha de Lanzamiento</span> <br><strong class="fs-5" id="lanzamiento-2">...</strong></div>
-                            <div><span class="text-muted small text-uppercase">Responsabilidad Estimada</span> <br><strong class="fs-5" id="responsabilidad-2">...</strong></div>
+                            <div><span class="text-muted small text-uppercase">Lanzamiento</span> <br><strong class="fs-5" id="lanzamiento-2">...</strong></div>
+                            <div><span class="text-muted small text-uppercase">Responsabilidad</span> <br><strong class="fs-5" id="responsabilidad-2">...</strong></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-4">
-                     <div class="card border-0 shadow-sm p-4 h-100 bg-primary text-white" style="border-radius: 15px;">
-                        <div class="d-flex justify-content-between mb-3">
-                             <span class="text-uppercase small fw-bold">Flujo de Incentivos</span>
-                        </div>
+                     <div class="card border-0 shadow-sm p-4 h-100 bg-primary text-white card-stat">
+                        <span class="text-uppercase small fw-bold opacity-75">Flujo de Incentivos</span>
                         <h1 class="fw-bold mb-1" id="flujo-total">...</h1>
                         <p class="small mb-4">⬆️ +12.4% vs Ciclo Anterior</p>
-                        <p class="small mb-1 d-flex justify-content-between"><span>Preparación para el Pago</span> <span id="preparacion-porcentaje">...</span></p>
-                        <div class="progress bg-white bg-opacity-25" style="height: 6px;">
+                        <div class="progress bg-white bg-opacity-25 mb-1" style="height: 6px;">
                             <div class="progress-bar bg-white" id="preparacion-barra" role="progressbar"></div>
                         </div>
+                        <span class="small opacity-75">Preparación para el Pago: <span id="preparacion-porcentaje">...</span></span>
                     </div>
                 </div>
             </div>
@@ -73,30 +73,107 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">👥 Asignación y Seguimiento de Empleados</h5>
                     <div class="d-flex gap-3 text-muted small">
-                        <span class="cursor-pointer">Filtro</span>
-                        <span class="cursor-pointer">Exportar</span>
+                        <span class="cursor-pointer"><i class="bi bi-filter"></i> Filtro</span>
+                        <span class="cursor-pointer"><i class="bi bi-download"></i> Exportar</span>
                     </div>
                 </div>
-                <table class="table table-hover table-striped-columns small">
-                    <thead class="table-light text-uppercase small text-muted">
-                        <tr>
-                            <th>Empleado</th>
-                            <th>Programa de Bonos Activo</th>
-                            <th>Método de Cálculo</th>
-                            <th>Progreso / Estado</th>
-                            <th>Pago Potencial</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-empleados">
-                        </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover small">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Programa</th>
+                                <th>Método</th>
+                                <th>Progreso</th>
+                                <th>Pago Potencial</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-empleados"></tbody>
+                    </table>
+                </div>
                  <div class="text-center mt-3">
-                    <button class="btn btn-link text-primary btn-sm text-uppercase fw-bold" id="btn-ver-todos">Ver todos los <span id="total-empleados">...</span> registros</button>
+                    <button class="btn btn-link text-primary btn-sm text-uppercase fw-bold text-decoration-none" id="btn-ver-todos">
+                        Ver todos los <span id="total-empleados">...</span> registros
+                    </button>
                 </div>
             </div>
-
         </div>
     </main>
+
+    <div class="modal fade" id="modalNuevoBono" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Configurar Nuevo Incentivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Nombre</label>
+                            <input type="text" class="form-control bg-light border-0" placeholder="Ej. Bono de Innovación">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tipo de Cálculo</label>
+                            <select class="form-select bg-light border-0">
+                                <option>Porcentaje Salario Base</option>
+                                <option>Monto Fijo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">Presupuesto Limite</label>
+                            <input type="text" class="form-control bg-light border-0" placeholder="$0.00">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-primary w-100 fw-bold py-2">PUBLICAR PROGRAMA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetallePrograma" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-light border-0">
+                    <div class="d-flex align-items-center">
+                        <div id="detalle-icon" class="icon-circle me-3"></div>
+                        <div>
+                            <h5 class="fw-bold mb-0" id="detalle-titulo">Nombre del Bono</h5>
+                            <span class="badge bg-success-subtle text-success small" id="detalle-estado">ACTIVO</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row mb-4 text-center">
+                        <div class="col-4 border-end">
+                            <p class="text-muted small mb-1">PARTICIPANTES</p>
+                            <h4 class="fw-bold mb-0" id="det-participantes">142</h4>
+                        </div>
+                        <div class="col-4 border-end">
+                            <p class="text-muted small mb-1">UTILIZACIÓN</p>
+                            <h4 class="fw-bold mb-0 text-primary" id="det-utilizacion">64%</h4>
+                        </div>
+                        <div class="col-4">
+                            <p class="text-muted small mb-1">PRÓXIMO PAGO</p>
+                            <h4 class="fw-bold mb-0" id="det-fecha">Oct 2024</h4>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold mb-3">Resumen de Ejecución</h6>
+                    <div class="progress mb-4" style="height: 10px;">
+                        <div id="det-barra" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 64%"></div>
+                    </div>
+                    <p class="text-muted small" id="detalle-desc">Descripción del programa de incentivos...</p>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">CERRAR</button>
+                    <button class="btn btn-primary fw-bold">DESCARGAR REPORTE DETALLADO</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../../components/layout/layout.js"></script>
