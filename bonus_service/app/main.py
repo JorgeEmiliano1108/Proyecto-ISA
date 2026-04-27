@@ -71,8 +71,24 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         response = await call_next(request)
         
-        for header_name, header_value in self.SECURITY_HEADERS.items():
-            response.headers[header_name] = header_value
+        if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi"):
+            for header_name, header_value in self.SECURITY_HEADERS.items():
+                if header_name == "Content-Security-Policy":
+                    response.headers[header_name] = (
+                        "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
+                        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                        "img-src 'self' data: https://cdn.jsdelivr.net; "
+                        "font-src 'self' https://cdn.jsdelivr.net data:; "
+                        "connect-src 'self' https://cdn.jsdelivr.net; "
+                        "frame-ancestors 'none'; "
+                        "object-src 'none'"
+                    )
+                else:
+                    response.headers[header_name] = header_value
+        else:
+            for header_name, header_value in self.SECURITY_HEADERS.items():
+                response.headers[header_name] = header_value
         
         if request.url.path.startswith("/api/"):
             response.headers["Vary"] = "Authorization"

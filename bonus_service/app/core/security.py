@@ -6,6 +6,7 @@ Validación estricta de token Bearer - Solo acepta tokens válidos.
 """
 import secrets
 import hmac
+import uuid
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -151,3 +152,11 @@ def get_optional_user(
 
 
 OptionalUser = Annotated[dict | None, Depends(get_optional_user)]
+
+
+ADMIN_USER_ID = "71323b56-e279-43e4-9603-8485dd1fecf9"
+
+
+def get_admin_user_id() -> uuid.UUID:
+    """Retorna el ID del usuario admin por defecto."""
+    return uuid.UUID(ADMIN_USER_ID)

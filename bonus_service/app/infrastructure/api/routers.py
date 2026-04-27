@@ -126,7 +126,9 @@ async def calculate_bonus(
     except HTTPException:
         raise
     except Exception as exc:
-        logger.error(f"Error en cálculo de bono: {type(exc).__name__}")
+        import traceback
+        logger.error(f"Error en cálculo de bono: {type(exc).__name__}: {exc}")
+        logger.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor",

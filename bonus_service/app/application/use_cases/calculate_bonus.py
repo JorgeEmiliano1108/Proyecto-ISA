@@ -73,9 +73,9 @@ class CalculateBonusUseCase(CalculateBonusInputPort):
             InvalidEBITDAException: Si el EBITDA está fuera de rango válido
             InvalidCalificacionException: Si la calificación está fuera de 1.0-5.0
         """
-        user_id = audit_context.user_id if audit_context else "system"
-        client_ip = audit_context.client_ip if audit_context else None
-        resource_id = audit_context.resource_id if audit_context else None
+        user_id = audit_context.get("user_id") if isinstance(audit_context, dict) else (audit_context.user_id if audit_context else "system")
+        client_ip = audit_context.get("client_ip") if isinstance(audit_context, dict) else getattr(audit_context, 'client_ip', None)
+        resource_id = audit_context.get("resource_id") if isinstance(audit_context, dict) else getattr(audit_context, 'resource_id', None)
 
         try:
             existing = await self._bonus_repo.find_by_evaluacion(command.evaluacion_id)
@@ -91,6 +91,12 @@ class CalculateBonusUseCase(CalculateBonusInputPort):
                 raise BonusAlreadyCalculatedException(command.evaluacion_id, "")
 
             evaluacion = await self._evaluacion_repo.get_by_id(command.evaluacion_id)
+            
+            if not evaluacion:
+                evaluacion = await self._evaluacion_repo.create_evaluacion(
+                    evaluacion_id=command.evaluacion_id,
+                    calificacion_global=command.calificacion_global,
+                )
             
             calificacion = command.calificacion_global
             if calificacion is None and evaluacion:

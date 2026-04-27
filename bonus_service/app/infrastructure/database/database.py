@@ -1,7 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+import ssl
 
 from app.core.config import settings
+
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
 
 # ── Motor de ESCRITURA (tabla bonos) ──────────────────────────────────────────
 write_engine = create_async_engine(
@@ -9,6 +14,9 @@ write_engine = create_async_engine(
     echo=False,
     pool_size=10,
     max_overflow=20,
+    connect_args={
+        "ssl": ssl_context,
+    },
 )
 
 WriteSessionLocal = async_sessionmaker(
@@ -23,6 +31,9 @@ read_engine = create_async_engine(
     echo=False,
     pool_size=5,
     max_overflow=10,
+    connect_args={
+        "ssl": ssl_context,
+    },
 )
 
 ReadSessionLocal = async_sessionmaker(

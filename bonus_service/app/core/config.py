@@ -50,17 +50,19 @@ class Settings(BaseSettings):
 
     # ── Base de Datos ─────────────────────────────────────────────────────
     DB_USER: str = "postgres"
-    DB_NAME: str = "bonus_db"
-    DB_HOST: str = "postgres"
+    DB_NAME: str = "postgres"
+    DB_HOST: str = "aws-1-us-west-2.pooler.supabase.com"
     DB_PORT: int = 5432
+    DB_PASSWORD: str = "admin_database2026"
 
     EVAL_DB_USER: str = "postgres"
-    EVAL_DB_NAME: str = "bonus_db"
-    EVAL_DB_HOST: str = "postgres"
+    EVAL_DB_NAME: str = "postgres"
+    EVAL_DB_HOST: str = "aws-1-us-west-2.pooler.supabase.com"
     EVAL_DB_PORT: int = 5432
+    EVAL_DB_PASSWORD: str = "admin_database2026"
 
     DB_MODE: str = "production"
-    DEBUG_MODE: bool = False
+    DEBUG_MODE: bool = True
 
     # ── Redis / Celery ────────────────────────────────────────────────────
     REDIS_URL: str = "redis://bonus_redis:6379/0"
@@ -70,28 +72,14 @@ class Settings(BaseSettings):
     # ── Seguridad ─────────────────────────────────────────────────────────
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    SECRET_KEY: str = "7fK9pL2mX8qR4tV6wY3zN5bH8jF0cD2eA1sQ9wE3rT5yU7iO9pL2mX4vB6nZ8qR0t"
+    ENCRYPTION_KEY: str = "jbFXfePbPiqSgj079V0S4AkoOBhkSY5qwGJeuU2MBXY="
 
     AUDIT_REDIS_CHANNEL: str = "audit.events"
 
     @property
-    def DB_PASSWORD(self) -> str:
-        return _read_secret("db_password")
-
-    @property
-    def EVAL_DB_PASSWORD(self) -> str:
-        return _read_secret("db_password")
-
-    @property
-    def SECRET_KEY(self) -> str:
-        return _read_secret("secret_key")
-
-    @property
-    def ENCRYPTION_KEY(self) -> str:
-        return _read_secret("encryption_key")
-
-    @property
     def PUBLIC_KEY(self) -> Optional[str]:
-        return _read_secret("jwt_public_key", required=False) or None
+        return None
 
     @property
     def write_db_url(self) -> str:

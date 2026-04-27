@@ -11,7 +11,7 @@ from app.application.use_cases.calculate_bonus import CalculateBonusUseCase
 from app.application.use_cases.get_bonus_report import GetBonusReportUseCase
 from app.core.security import get_current_user, CurrentUser
 from app.core.logging import anonymize_ip
-from app.infrastructure.database.database import get_write_session, get_read_session
+from app.infrastructure.database.database import get_write_session as _get_write_session, get_read_session as _get_read_session
 from app.infrastructure.database.repository import (
     SQLBonusRepository,
     SQLEvaluacionReadRepository,
@@ -30,13 +30,13 @@ def get_remote_address(request: Request) -> str | None:
 
 async def get_write_session() -> AsyncGenerator[AsyncSession, None]:
     """Generador de sesión de escritura para operaciones de base de datos."""
-    async for session in get_write_session():
+    async for session in _get_write_session():
         yield session
 
 
 async def get_read_session() -> AsyncGenerator[AsyncSession, None]:
     """Generador de sesión de lectura para operaciones de base de datos."""
-    async for session in get_read_session():
+    async for session in _get_read_session():
         yield session
 
 

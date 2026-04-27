@@ -33,6 +33,15 @@ class EvaluacionReadRepositoryPort(ABC):
         """Retorna la evaluación con su calificacion_global y datos relevantes."""
         ...
 
+    @abstractmethod
+    async def create_evaluacion(
+        self,
+        evaluacion_id: uuid.UUID,
+        calificacion_global: float,
+    ) -> dict:
+        """Crea una evaluación si no existe (para permitir cálculo de bono)."""
+        ...
+
 
 class AuditLogRepositoryPort(ABC):
     """Contrato para registro de auditoría (LFPDPPP Art. 18-19)."""
