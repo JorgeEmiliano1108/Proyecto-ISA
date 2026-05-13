@@ -15,7 +15,7 @@ config = context.config
 
 # Sobrescribimos dinámicamente la URL de la base de datos usando nuestro config.py (Pydantic)
 # Esto asegura que Alembic siempre use la misma BD que FastAPI, sin hardcodear credenciales.
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -43,8 +43,10 @@ def do_run_migrations(connection) -> None:
 
 async def run_migrations_online() -> None:
     """Ejecuta migraciones en modo 'online' usando el motor asíncrono."""
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = config.get_main_option("sqlalchemy.url")
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

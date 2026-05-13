@@ -2,8 +2,7 @@
 global:
   resolve_timeout: 5m
   # Aquí pondrías el Webhook real de Slack de ISA Corporativo
-  slack_api_url: 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
-
+  slack_api_url: url: "https://hooks.slack.com/services/REEMPLAZAR_CON_WEBHOOK_REAL"
 route:
   group_by: ['alertname', 'severity']
   group_wait: 10s

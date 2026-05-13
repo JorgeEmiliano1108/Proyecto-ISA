@@ -11,21 +11,11 @@ services:
     container_name: isa_reports_api
     restart: unless-stopped
     env_file: .env
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres_secure_password_2024@reports_db:5432/isa_db
-      - MS3_REDIS_URL=redis://reports_redis:6379/0
-      - QDRANT_URL=http://reports_qdrant:6333
-      - OLLAMA_BASE_URL=http://ollama_reports:11434
-      # --- Integración MinIO (S3Adapter) ---
-      - MS3_S3_ENDPOINT=http://minio:9000
-      - MS3_S3_ACCESS_KEY=minioadmin
-      - MS3_S3_SECRET_KEY=minioadmin
-      - MS3_S3_BUCKET=reports
     volumes:
       - ./app:/srv/report_service/app 
-      - reports_static:/srv/ms3_reports/static
+      - ./tests:/srv/report_service/tests 
     ports:
-      - "8003:8003"
+      - "8004:8003"
     depends_on:
       reports_redis:
         condition: service_healthy
@@ -49,16 +39,6 @@ services:
 
     restart: unless-stopped
     env_file: .env
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres_secure_password_2024@reports_db:5432/isa_db
-      - MS3_REDIS_URL=redis://reports_redis:6379/0
-      - QDRANT_URL=http://reports_qdrant:6333
-      - OLLAMA_BASE_URL=http://ollama_reports:11434
-      # --- Integración MinIO (S3Adapter) ---
-      - MS3_S3_ENDPOINT=http://minio:9000
-      - MS3_S3_ACCESS_KEY=minioadmin
-      - MS3_S3_SECRET_KEY=minioadmin
-      - MS3_S3_BUCKET=reports
     volumes:
       - ./app:/srv/report_service/app
       - reports_static:/srv/ms3_reports/static
@@ -132,8 +112,18 @@ services:
       /bin/sh -c "
       ollama serve &
       sleep 5 &&
+      ollama pull nomic-embed-text &&
       ollama run phi3 &
       wait"
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
     networks:
       - isa_reports_network
 
@@ -145,8 +135,8 @@ services:
       - MINIO_ROOT_PASSWORD=minioadmin
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000" # API S3
-      - "9001:9001" # Consola Web
+      - "9003:9000" # API S3
+      - "9004:9001" # Consola Web
     volumes:
       - minio_data:/data
     networks:
@@ -183,7 +173,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     ports:
-      - "9090:9090" # Interfaz Web de Prometheus
+      - "9092:9090" # Interfaz Web de Prometheus
     networks:
       - isa_reports_network
 
@@ -195,7 +185,7 @@ services:
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
     ports:
-      - "9093:9093" # Interfaz Web de Alertmanager
+      - "9094:9093" # Interfaz Web de Alertmanager
     networks:
       - isa_reports_network
 

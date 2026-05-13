@@ -52,7 +52,9 @@ def generate_report(
         evaluacion_id=payload.evaluacion_id,
         profile_name=payload.profile_name,
         institution_id=payload.institution_id,
-        job_id=job_id
+        job_id=job_id,
+        requester_id=current_user.get("sub"),
+        requester_role=current_user.get("role")
     )
     
     return {
@@ -75,7 +77,7 @@ def get_status(
         raise HTTPException(status_code=404, detail="Job no encontrado en Redis.")
         
     status_str = job_data.get("status", "UNKNOWN")
-    result_url = job_data.get("result", None)
+    result_url = job_data.get("result", job_data.get("pdf_s3_path", None))
     
     return {
         "job_id": job_id,

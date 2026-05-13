@@ -91,7 +91,7 @@ class OllamaAdapter(LLMPort):
         {context_rules}
         
         DATOS DE ENTRADA (EVALUACIÓN ISA CORPORATIVO):
-        {json.dumps(sanitized_payload, ensure_ascii=False)}
+        {json.dumps(sanitized_payload, ensure_ascii=False, default=str)}
         
         INSTRUCCIONES CRÍTICAS:
         1. Debes generar un JSON con esta estructura exacta. NO cambies los nombres de las llaves principales ('style', 'header', 'sections', 'footer_text').

@@ -38,8 +38,22 @@ class WeasyPrintReportGenerator:
             except Exception as e:
                 logger.warning(f"No se pudo aplicar el parche de pydyf: {e}")
 
+    def build_html(self, layout_schema: dict, institution_id: str) -> str:
+        """Ensambla el HTML inyectando logotipos."""
+        # Creación de HTML muy básico usando el JSON del LLM
+        return f"""
+        <html>
+            <head><style>body {{ font-family: sans-serif; }}</style></head>
+            <body>
+                <h1>{layout_schema.get('header', 'Evaluación')}</h1>
+                <p>Institución: {institution_id}</p>
+                <pre>{layout_schema}</pre>
+            </body>
+        </html>
+        """
+
     @staticmethod
-    def generate_pdf(html_content: str) -> bytes:
+    def generate_pdf_bytes(html_content: str) -> bytes:
         """Renderiza HTML a PDF de manera síncrona."""
         # Aplicamos el parche justo antes de renderizar
         WeasyPrintReportGenerator._apply_pydyf_patch()

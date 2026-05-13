@@ -12,11 +12,14 @@ SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL.replace(
     "postgresql://", "postgresql+asyncpg://"
 )
 
+from sqlalchemy.pool import NullPool
+
 # Crear motor asíncrono
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
-    echo=False,  # Cambiar a True para ver las queries SQL en los logs (Desarrollo)
-    future=True
+    echo=False,
+    future=True,
+    poolclass=NullPool
 )
 
 # Fábrica de sesiones asíncronas
