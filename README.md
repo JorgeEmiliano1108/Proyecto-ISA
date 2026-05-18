@@ -1,6 +1,12 @@
 # Sistema ISA - Backend Django
 
 ## Resumen del Proyecto
+**Contexto actualizado (abril 2026)**
+- El proyecto está basado en Supabase (PostgreSQL) con **`managed = False`**; las tablas ya existen.
+- `inspectdb` muestra el modelo real de la tabla **`usuarios`**: incluye `password`, `nombre_completo`, `id_presona_empleado` (typo) y campos `id_area_siare`, `id_puesto_siare`.
+- El DBA solicitó que el modelo Django herede de `AbstractBaseUser` y mapee los campos exactos, incluido `db_column='id_presona_empleado'`.
+- Falta la columna `last_login`; se propondrá agregarla o usar `models.Model` con manejo manual de contraseñas.
+- Próximo objetivo: JIT Provisioning vía el API .NET (AD) y creación de un mock FastAPI para pruebas.
 
 El **Sistema ISA** es una plataforma backend para digitalizar el proceso de evaluación de desempeño discrecional de ISA Corporativo. Reemplaza el flujo físico (Excel + papel) por una plataforma digital con:
 
@@ -435,6 +441,74 @@ Para contribuir a esta rama:
 ---
 
 ## Estado: Fases 1 y 2 Completadas ✅
+
+### Próximos pasos
+- Actualizar `apps/users/models.py` para usar los campos exactos del esquema del DBA (incluyendo `id_presona_empleado` con `db_column='id_presona_empleado'`).
+- Decidir entre `AbstractBaseUser` (requiere `last_login`) o `models.Model` con manejo manual de contraseñas.
+- Implementar Mock FastAPI que exponga los endpoints `/api/auth/token`, `/api/active-directory/validar-acceso` y `/api/personas-siare/consultar-por-usuario-ad`.
+- Crear cliente HTTP en Django (`apps/users/ad_client.py`) que consuma el Mock y habilite JIT Provisioning.
+
+## Árbol del proyecto
+.
+├── Dockerfile
+├── PLAN_IMPLEMENTACION.txt
+├── README.md
+├── api_ISA
+│   └── README.md
+├── apps
+│   ├── __init__.py
+│   ├── audit
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── migrations
+│   │   │   ├── 0001_initial.py
+│   │   │   └── __init__.py
+│   │   └── models.py
+│   ├── catalogs
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── evaluations
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── permissions.py
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── finances
+│   │   ├── __init__.py
+│   │   ├── apps.py
+│   │   ├── migrations
+│   │   │   ├── 0001_initial.py
+│   │   │   └── __init__.py
+│   │   └── models.py
+│   └── users
+│       ├── __init__.py
+│       ├── admin.py
+│       ├── apps.py
+│       ├── authentication.py
+│       ├── models.py
+│       ├── serializers.py
+│       ├── urls.py
+│       └── views.py
+├── core
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── docker-compose.yml
+├── manage.py
+└── requirements.txt
+
+11 directories, 47 files
 
 El proyecto tiene las siguientes fases funcionales:
 - ✅ Fase 1: Login JWT, Catálogos API (ReadOnly), CRUD Usuarios, Permisos RBAC, Django Admin

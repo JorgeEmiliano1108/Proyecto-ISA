@@ -54,3 +54,6 @@ yarn-error.log
 nul
 Proyecto-ISA (docs)/
 docs/
+
+# carpeta api de ISA
+api_ISA/
