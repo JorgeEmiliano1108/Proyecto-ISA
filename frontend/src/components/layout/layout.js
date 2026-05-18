@@ -1,15 +1,83 @@
-document.addEventListener("DOMContentLoaded", () => {
+const API_BASE_URL = 'http://localhost:8000/api/v1';
+
+function getAuthHeaders() {
+    const token = localStorage.getItem('access_token');
+    return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+}
+
+function isTokenExpired() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return true;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 < Date.now();
+    } catch {
+        return true;
+    }
+}
+
+async function tryRefreshToken() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) return false;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/refresh/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken })
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        localStorage.setItem('access_token', data.access);
+        if (data.refresh) {
+            localStorage.setItem('refresh_token', data.refresh);
+        }
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+async function apiFetch(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const config = { ...options, headers: { ...getAuthHeaders(), ...options.headers } };
+    let res = await fetch(url, config);
+    if (res.status === 401) {
+        const refreshed = await tryRefreshToken();
+        if (refreshed) {
+            config.headers = { ...getAuthHeaders(), ...options.headers };
+            res = await fetch(url, config);
+        } else {
+            logout();
+            throw new Error('Sesión expirada');
+        }
+    }
+    return res;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
     const savedColor = localStorage.getItem('isaThemeColor');
     if (savedColor) {
         document.documentElement.style.setProperty('--primary-color', savedColor);
     }
 
     const container = document.getElementById('layout-container');
-    const userData = JSON.parse(localStorage.getItem('userData'));
+    let userData = JSON.parse(localStorage.getItem('userData'));
 
     if (!userData) {
         window.location.href = '../../../../index.html'; 
         return;
+    }
+
+    if (localStorage.getItem('refresh_token') && isTokenExpired()) {
+        const refreshed = await tryRefreshToken();
+        if (!refreshed) {
+            logout();
+            return;
+        }
     }
 
     const isAdmin = userData.rol === 'admin';
@@ -175,6 +243,8 @@ function marcarLeidasNotif() {
 
 function logout() {
     localStorage.removeItem('userData');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     window.location.href = '../../../../index.html';
 }
 

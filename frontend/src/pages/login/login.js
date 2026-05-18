@@ -1,4 +1,5 @@
-// --- Lógica del selector de color ---
+const API_BASE_URL = 'http://localhost:8000/api/v1';
+
 const picker = document.getElementById('colorPicker');
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -15,32 +16,56 @@ picker.addEventListener('input', (e) => {
     localStorage.setItem('isaThemeColor', color);
 });
 
-// --- Tu lógica original de login ---
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const btn = e.target.querySelector('.btn-login');
-    
-    // Efecto de carga visual
     btn.innerHTML = 'Validando...';
     btn.style.opacity = '0.7';
     btn.style.pointerEvents = 'none';
 
-    const user = document.getElementById('username').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-    const userData = {
-        nombre: user,
-        rol: user === 'admin' ? 'admin' : 'usuario'
-    };
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-    localStorage.setItem('userData', JSON.stringify(userData));
-
-    // Simulamos una pequeña espera para la animación
-    setTimeout(() => {
-        if(user === 'admin') {
-            window.location.href = './src/pages/admin/dashboard/dashboard.html';
-        } else {
-            window.location.href = './src/pages/usuario/dashboard/dashboard.html';
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || 'Credenciales inválidas');
         }
-    }, 800);
+
+        const data = await res.json();
+
+        const payload = JSON.parse(atob(data.access.split('.')[1]));
+
+        const rol = payload.rol_id === 5 ? 'admin' : 'usuario';
+
+        const userData = {
+            nombre: payload.nombre_completo,
+            username: payload.username,
+            rol: rol,
+            puesto: payload.puesto,
+            user_id: payload.user_id,
+            departamento_id: payload.departamento_id
+        };
+
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+
+        window.location.href = rol === 'admin'
+            ? './src/pages/admin/dashboard/dashboard.html'
+            : './src/pages/usuario/dashboard/dashboard.html';
+
+    } catch (err) {
+        alert('Error: ' + err.message);
+        btn.innerHTML = 'Iniciar Sesión';
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+    }
 });
