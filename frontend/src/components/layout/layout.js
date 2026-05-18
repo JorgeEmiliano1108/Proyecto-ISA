@@ -107,6 +107,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             <a href="../../admin/bonos/bonos.html" class="sidebar-link">
                 <i class="bi bi-cash-stack"></i> <span class="link-text">Bonos</span>
             </a>
+            <a href="../../admin/configuracion/configuracion.html" class="sidebar-link">
+                <i class="bi bi-palette fs-5"></i> Configuración
+            </a>
             <a href="../../admin/consultas/consultas.html" class="sidebar-link">
                 <i class="bi bi-chat-dots"></i> <span class="link-text">Aclaraciones</span>
             </a>

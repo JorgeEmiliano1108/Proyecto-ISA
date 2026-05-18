@@ -6,7 +6,6 @@
     <title>Mis Evaluaciones - ISA Corporativo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
     <link rel="stylesheet" href="../../../../css/styles.css">
     <link rel="stylesheet" href="../../../components/layout/layout.css">
     <link rel="stylesheet" href="../../../components/grilla-evaluacion/grilla-evaluacion.css">
@@ -23,18 +22,18 @@
                     <p class="text-muted">Gestiona tus encuestas pendientes y revisa tu historial de desempeño profesional.</p>
                 </div>
                 <button class="btn btn-success px-4 shadow-sm fw-bold" onclick="abrirGrillaEvaluacion()">
-                    <i class="bi bi-grid-3x3 me-2"></i>Abrir Grilla de Evaluación
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i>Abrir Evaluación Discrecional
                 </button>
             </div>
 
             <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 15px; border-left: 5px solid #ffc107 !important;">
-                <h5 class="fw-bold mb-3 text-warning">⚠️ Pendientes por Completar</h5>
+                <h5 class="fw-bold mb-3 text-warning"> Pendientes por Completar</h5>
                 <div class="row g-3" id="contenedor-pendientes">
                     </div>
             </div>
 
             <div class="card border-0 shadow-sm p-4" style="border-radius: 15px;">
-                <h5 class="fw-bold mb-4">📜 Historial de Evaluaciones</h5>
+                <h5 class="fw-bold mb-4"> Historial de Evaluaciones</h5>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light text-muted small text-uppercase">
@@ -60,81 +59,33 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title fw-bold">
-                            <i class="bi bi-star-fill me-2"></i>Evaluación de Desempeño Q1 2025
+                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Evaluación de Desempeño Discrecional 2025
                         </h5>
-                        <p class="text-white-50 small mb-0">Evalúa el desempeño de tu equipo en las 6 competencias clave</p>
+                        <p class="text-white-50 small mb-0">Formato oficial de evaluación - ISA Corporativo</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <span id="estado-evaluacion" class="estado-evaluacion en-proceso">
+                        <span id="estado-conexion" class="estado-evaluacion">
                             <span class="spinner-border spinner-border-sm" style="width: 10px; height: 10px;"></span>
-                            En Proceso
+                            Conectando...
                         </span>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                 </div>
                 <div class="modal-body p-0">
-                    <div class="grilla-toolbar">
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-primary" onclick="grillaISA.agregarFila()">
-                                <i class="bi bi-plus-lg"></i>Agregar Fila
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="grillaISA.guardar()">
-                                <i class="bi bi-save"></i>Guardar
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="grillaISA.cargar()">
-                                <i class="bi bi-folder2-open"></i>Recuperar
-                            </button>
-                        </div>
-                        <div class="grilla-leyenda">
-                            <span><i class="bi bi-palette me-1"></i>Escala:</span>
-                            <div class="grilla-leyenda-item"><span class="color-dot c1">1</span><span class="small">Bajo</span></div>
-                            <div class="grilla-leyenda-item"><span class="color-dot c2">2</span><span class="small">Regular</span></div>
-                            <div class="grilla-leyenda-item"><span class="color-dot c3">3</span><span class="small">Bueno</span></div>
-                            <div class="grilla-leyenda-item"><span class="color-dot c4">4</span><span class="small">Muy Bueno</span></div>
-                            <div class="grilla-leyenda-item"><span class="color-dot c5">5</span><span class="small">Excelente</span></div>
-                        </div>
-                    </div>
-                    <div id="grilla-evaluacion-container" class="grilla-container"></div>
-                    <div class="grilla-stats">
-                        <div class="stat-card">
-                            <div class="stat-icon promedio">
-                                <i class="bi bi-calculator"></i>
-                            </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="stat-promedio-general">0.0</span>
-                                <span class="stat-label">Promedio General</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon empleados">
-                                <i class="bi bi-people"></i>
-                            </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="stat-empleados">5</span>
-                                <span class="stat-label">Empleados</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon tiempo">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <div class="stat-content">
-                                <span class="stat-value" id="stat-ultimo-cambio">--:--</span>
-                                <span class="stat-label">Última Modificación</span>
-                            </div>
+                    <div id="grilla-evaluacion-container" class="grilla-container">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <p class="text-muted">Cargando formulario de evaluación...</p>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>Los cambios se guardan automáticamente cada 2 segundos
+                        <i class="bi bi-info-circle me-1"></i>Los datos se guardan directamente en tu archivo Excel en OneDrive
                     </div>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
                             <i class="bi bi-x-lg me-1"></i>Cerrar
-                        </button>
-                        <button type="button" class="btn btn-success px-4" onclick="grillaISA.guardar(); alert('✅ Evaluación guardada correctamente');">
-                            <i class="bi bi-check2-circle me-1"></i>Finalizar Evaluación
                         </button>
                     </div>
                 </div>
@@ -143,7 +94,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script src="../../../services/microsoft-graph.js"></script>
     <script src="../../../components/grilla-evaluacion/grilla-evaluacion.js"></script>
     <script src="../../../components/layout/layout.js"></script>
     <script src="../../../components/layout/modal-notificaciones.js"></script>

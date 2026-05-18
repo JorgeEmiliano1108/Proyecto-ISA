@@ -12,8 +12,19 @@
     border: none;
 }
 
-/* Efecto sutil al pasar sobre las pendientes */
 #contenedor-pendientes .card:hover {
     transform: scale(1.01);
     border-color: #0d6efd !important;
+}
+
+.btn-success {
+    background: var(--grilla-success, #10b981);
+    border-color: var(--grilla-success, #10b981);
+}
+
+.btn-success:hover {
+    background: #059669;
+    border-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }

@@ -1,6 +1,3 @@
-/**
- * SERVICIO DE EVALUACIONES (Capa de Datos)
- */
 const EvaluacionesUserService = {
     async getPendientes() {
         return [
@@ -19,28 +16,79 @@ const EvaluacionesUserService = {
 
 let grillaISA = null;
 
+const EXCEL_FILE_ID = '';
+
 function abrirGrillaEvaluacion() {
     const modal = new bootstrap.Modal(document.getElementById('modalGrilla'));
     modal.show();
-    
+
+    const estadoConexion = document.getElementById('estado-conexion');
+
     setTimeout(() => {
         if (!grillaISA) {
             grillaISA = new GrillaISA('grilla-evaluacion-container', {
-                evaluacionId: '2025-Q1',
-                periodo: 'Q1 2025',
-                readOnly: false,
+                evaluacionId: 'eval-discrecional-2025',
+                periodo: '2025',
+                fileId: EXCEL_FILE_ID || null,
                 onSave: (data) => {
-                    console.log('Evaluación guardada:', data);
-                    document.getElementById('stat-ultimo-cambio').textContent = new Date().toLocaleTimeString();
+                    const ahora = new Date();
+                    const timeStr = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                    const notif = document.createElement('div');
+                    notif.className = 'position-fixed bottom-0 end-0 m-3 badge bg-success text-white px-3 py-2 shadow';
+                    notif.style.zIndex = '9999';
+                    notif.innerHTML = `<i class="bi bi-check-circle me-1"></i>Guardado ${timeStr}`;
+                    document.body.appendChild(notif);
+                    setTimeout(() => notif.remove(), 3000);
+                },
+                onLoad: (data) => {
+                    actualizarEstadoConexion(true);
                 }
             });
         }
+        verificarSesion();
     }, 100);
 }
 
-/**
- * CONTROLADOR
- */
+async function verificarSesion() {
+    const estadoConexion = document.getElementById('estado-conexion');
+    try {
+        const loggedIn = await MSGraphService.isLoggedIn();
+        if (loggedIn) {
+            actualizarEstadoConexion(true);
+            if (EXCEL_FILE_ID) {
+                grillaISA.cargar();
+            }
+        } else {
+            estadoConexion.className = 'estado-evaluacion';
+            estadoConexion.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Conectando...';
+            await MSGraphService.login();
+            actualizarEstadoConexion(true);
+            if (EXCEL_FILE_ID) {
+                grillaISA.cargar();
+            }
+        }
+    } catch (e) {
+        console.error('Error de autenticación:', e);
+        estadoConexion.className = 'estado-evaluacion';
+        estadoConexion.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>No conectado';
+        estadoConexion.style.background = 'rgba(239, 68, 68, 0.3)';
+    }
+}
+
+function actualizarEstadoConexion(conectado) {
+    const estadoConexion = document.getElementById('estado-conexion');
+    if (!estadoConexion) return;
+    if (conectado) {
+        estadoConexion.className = 'estado-evaluacion completado';
+        estadoConexion.innerHTML = '<i class="bi bi-check-circle me-1"></i>OneDrive Conectado';
+        estadoConexion.style.background = 'rgba(16, 185, 129, 0.3)';
+    } else {
+        estadoConexion.className = 'estado-evaluacion';
+        estadoConexion.innerHTML = '<i class="bi bi-x-circle me-1"></i>Desconectado';
+        estadoConexion.style.background = 'rgba(239, 68, 68, 0.3)';
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         const [pendientes, historial] = await Promise.all([
@@ -87,16 +135,14 @@ function renderHistorial(lista) {
             <td>${h.evaluador}</td>
             <td><span class="fw-bold text-primary">${h.score.toFixed(1)}</span></td>
             <td>
-                <button class="btn btn-sm btn-light border" onclick="verCertificado(${h.id})">📑 Ver Reporte</button>
+                <button class="btn btn-sm btn-light border" onclick="verCertificado(${h.id})"> Ver Reporte</button>
             </td>
         </tr>
     `).join('');
 }
 
-// Funciones para acciones (Backend Ready)
 function comenzarEncuesta(id) {
     alert("Redirigiendo al cuestionario ID: " + id);
-    // window.location.href = `../responder/responder.html?id=${id}`;
 }
 
 function verCertificado(id) {

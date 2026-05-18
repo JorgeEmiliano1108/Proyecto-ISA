@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - ISA Corporativo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../../../css/styles.css">
+    <link rel="stylesheet" href="../../../components/layout/layout.css">
+    <link rel="stylesheet" href="./configuracion.css">
+</head>
+<body>
+
+    <div id="layout-container"></div>
+
+    <main class="page-content">
+        <div class="container-fluid">
+            <div class="row justify-content-center mt-4">
+                <div class="col-lg-6 col-md-8">
+                    <div class="card border-0 shadow-sm p-5">
+                        <div class="text-center mb-4">
+                            <div class="icon-circle-config mx-auto mb-3">
+                                <i class="bi bi-palette fs-2"></i>
+                            </div>
+                            <h4 class="fw-bold">Personalización del Sistema</h4>
+                            <p class="text-muted small">Selecciona el color principal que se usará en toda la plataforma.</p>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center mb-4">
+                            <label for="colorPicker" class="form-label fw-bold text-uppercase small text-secondary">Color Primario</label>
+                            <div class="d-flex align-items-center justify-content-center gap-3 mt-2">
+                                <input type="color" id="colorPicker" value="#1e40af" class="color-input">
+                                <span class="badge bg-light text-dark border px-3 py-2 font-monospace" id="colorValue">#1e40af</span>
+                            </div>
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <div class="color-preview" id="colorPreview"></div>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-center gap-2 py-3 mb-0" role="alert">
+                            <i class="bi bi-info-circle-fill fs-5"></i>
+                            <small>El color se aplica en vivo a todos los elementos del sistema: barra lateral, botones, enlaces, bordes y más.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../components/layout/modal-perfil.js"></script>
+    <script src="../../../components/layout/modal-notificaciones.js"></script>
+    <script src="../../../components/layout/layout.js"></script>
+    <script src="./configuracion.js"></script>
+</body>
+</html>
