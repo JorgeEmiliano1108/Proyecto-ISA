@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="dropdown">
                     <div class="d-flex align-items-center gap-3" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
                         <div class="text-end d-none d-md-block">
-                            <div class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.2;">${userData.nombre}</div>
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem; line-height: 1.2;">${userData.nombre || userData.username}</div>
                             <div class="text-muted text-capitalize" style="font-size: 0.8rem;">${userData.rol}</div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
