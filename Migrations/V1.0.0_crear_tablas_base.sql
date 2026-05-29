@@ -110,6 +110,7 @@ CREATE TABLE bonos (
     fecha_calculo TIMESTAMP DEFAULT now()
 );
 
+SELECT * FROM bonos;
 
 -- Ajustes finales
 

@@ -9,4 +9,5 @@ JOIN cat_departamentos d ON e.departamento_id = d.id
 LEFT JOIN usuarios j ON e.manager_id = j.id;
 
 select * from usuarios;
-select * from evaluaciones;
+select * from cat_roles cr ;
+
