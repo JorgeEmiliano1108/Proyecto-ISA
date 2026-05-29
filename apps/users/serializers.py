@@ -15,6 +15,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['nombre_completo'] = usuario.nombre_completo
         token['puesto'] = usuario.puesto
         token['rol_id'] = usuario.rol_id
+        token['rol_nombre'] = usuario.rol.nombre if usuario.rol else None
         token['departamento_id'] = usuario.departamento_id
         return token
 
