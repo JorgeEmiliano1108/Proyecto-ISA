@@ -10,7 +10,7 @@ services:
       target: development # <--- Apunta al stage de desarrollo
     container_name: audit_service_dev
     ports:
-      - "8000:8000"
+      - "8002:8000"
     volumes:
       - ./app:/app/app # Montamos el código para Hot Reload
       - ./alembic:/app/alembic
