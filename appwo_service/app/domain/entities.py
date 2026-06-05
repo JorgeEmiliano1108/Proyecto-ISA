@@ -16,12 +16,10 @@ from app.domain.exceptions import (
 # ==========================================
 
 class EvaluationStatus(str, Enum):
-    DRAFT = "DRAFT"
-    SUBMITTED = "SUBMITTED"
-    PENDING_APPROVAL = "PENDING_APPROVAL"
-    APPROVED = "APPROVED"
-    CLOSED = "CLOSED"
-    REJECTED = "REJECTED"
+    RECIBIDO = "RECIBIDO"
+    EN_REVISION = "EN_REVISION"
+    APROBADO = "APROBADO"
+    NO_APROBADO = "NO_APROBADO"
 
 class ActorRole(str, Enum):
     COORDINATOR = "COORDINATOR"
@@ -55,7 +53,7 @@ class EvaluationWorkflowEntity:
     """
     id: str  # UUID del flujo
     evaluation_id: str  # ID de la evaluación en el sistema de Django
-    status: EvaluationStatus = EvaluationStatus.DRAFT
+    status: EvaluationStatus = EvaluationStatus.RECIBIDO
     requires_manager: bool = True
     justification_notes: Optional[str] = None
     
@@ -81,47 +79,48 @@ class EvaluationWorkflowEntity:
         """Limpia las firmas (útil cuando se rechaza el flujo y debe volver a empezar)."""
         self.signatures.clear()
 
+    def start_review(self, actor_role: ActorRole) -> None:
+        """Inicia la revisión: RECIBIDO → EN_REVISION.
+        Solo roles autorizados (MANAGER) pueden iniciar la revisión.
+        """
+        if self.status != EvaluationStatus.RECIBIDO:
+            raise InvalidTransitionException(
+                f"Solo las evaluaciones en RECIBIDO pueden pasar a EN_REVISION. Actual: {self.status}"
+            )
+        if actor_role != ActorRole.MANAGER:
+            raise UnauthorizedApprovalException(f"El rol {actor_role} no está autorizado para iniciar la revisión.")
+        self.status = EvaluationStatus.EN_REVISION
+
     # ==========================================
     # LÓGICA DE LA MÁQUINA DE ESTADOS (STATE MACHINE)
     # ==========================================
 
     def approve(self, actor_role: ActorRole) -> None:
         """
-        Intenta aprobar el flujo actual basándose en el rol.
-        Lanza excepciones de dominio si se viola la jerarquía.
+        Aprobar la evaluación cuando está en EN_REVISION.
+        Solo roles con permiso pueden aprobar y el estado resultante es APROBADO.
         """
-        if self.status != EvaluationStatus.PENDING_APPROVAL:
+        if self.status != EvaluationStatus.EN_REVISION:
             raise InvalidTransitionException(
-                f"Solo las evaluaciones en PENDING_APPROVAL pueden ser aprobadas. Actual: {self.status}"
+                f"Solo las evaluaciones en EN_REVISION pueden ser aprobadas. Actual: {self.status}"
             )
 
-        if actor_role == ActorRole.MANAGER:
-            if not self.requires_manager:
-                raise UnauthorizedApprovalException("Esta evaluación no requiere aprobación gerencial.")
-            if self.has_manager_signature():
-                raise InvalidTransitionException("El Gerente ya ha firmado esta evaluación.")
-            
-            # Nota: El estado se mantiene en PENDING_APPROVAL porque falta la firma del Director.
-
-        elif actor_role == ActorRole.DIRECTOR:
-            if self.requires_manager and not self.has_manager_signature():
-                raise InvalidTransitionException("El Gerente debe aprobar antes que el Director.")
-            if self.has_director_signature():
-                raise InvalidTransitionException("El Director ya ha firmado esta evaluación.")
-            
-            # Al firmar el Director (después del Gerente, si aplicaba), la evaluación se aprueba.
-            self.status = EvaluationStatus.APPROVED
-
-        else:
+        # En este flujo simplificado, cualquier rol autorizado (MANAGER o DIRECTOR) puede aprobar directamente.
+        if actor_role not in (ActorRole.MANAGER, ActorRole.DIRECTOR):
             raise UnauthorizedApprovalException(f"El rol {actor_role} no tiene permisos para aprobar.")
+
+        # No se manejan firmas adicionales aquí; simplemente cambiamos el estado.
+        self.status = EvaluationStatus.APROBADO
+
 
     def reject(self, actor_role: ActorRole, justification: Optional[str]) -> None:
         """
-        Rechaza el flujo, exigiendo justificación y limpiando firmas anteriores.
+        Rechaza la evaluación cuando está EN_REVISION.
+        Requiere justificación y cambia el estado a NO_APROBADO.
         """
-        if self.status != EvaluationStatus.PENDING_APPROVAL:
+        if self.status != EvaluationStatus.EN_REVISION:
             raise InvalidTransitionException(
-                f"Solo las evaluaciones en PENDING_APPROVAL pueden ser rechazadas. Actual: {self.status}"
+                f"Solo las evaluaciones en EN_REVISION pueden ser rechazadas. Actual: {self.status}"
             )
         
         if not justification or len(justification.strip()) == 0:
@@ -130,6 +129,6 @@ class EvaluationWorkflowEntity:
         if actor_role not in (ActorRole.MANAGER, ActorRole.DIRECTOR):
             raise UnauthorizedApprovalException(f"El rol {actor_role} no tiene permisos para rechazar.")
 
-        # El rechazo anula cualquier progreso previo
-        self.status = EvaluationStatus.REJECTED
+        # Cambiamos el estado y limpiamos firmas anteriores
+        self.status = EvaluationStatus.NO_APROBADO
         self.clear_signatures()

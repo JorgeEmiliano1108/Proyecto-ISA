@@ -33,3 +33,15 @@ class IRejectEvaluationUseCase(ABC):
     ) -> Dict[str, Any]:
         """Ejecuta el flujo de rechazo y retorna un diccionario con el resultado."""
         pass
+
+class IStartReviewUseCase(ABC):
+    """Puerto de Entrada para iniciar la revisión de una evaluación."""
+    @abstractmethod
+    async def execute(
+        self,
+        evaluation_id: str,
+        actor_id: str,
+        ip_address: str
+    ) -> Dict[str, Any]:
+        """Inicia la revisión y retorna el nuevo estado."""
+        pass

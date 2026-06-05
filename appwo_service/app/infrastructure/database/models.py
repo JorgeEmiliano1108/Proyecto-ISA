@@ -20,7 +20,7 @@ class WorkflowModel(Base):
     # ID de la evaluación que vive en el microservicio de Django
     evaluation_id: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     
-    status: Mapped[EvaluationStatus] = mapped_column(SQLEnum(EvaluationStatus), default=EvaluationStatus.DRAFT, nullable=False)
+    status: Mapped[EvaluationStatus] = mapped_column(SQLEnum(EvaluationStatus), default=EvaluationStatus.RECIBIDO, nullable=False)
     requires_manager: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     justification_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     

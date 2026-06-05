@@ -14,13 +14,14 @@ from app.domain.exceptions import DomainException
 from app.core.exceptions import ApplicationException
 
 # IMPORTANTE: Importamos los Puertos de Entrada (Interfaces) en lugar de la implementación
-from app.application.ports.input import IApproveEvaluationUseCase, IRejectEvaluationUseCase
+from app.application.ports.input import IApproveEvaluationUseCase, IRejectEvaluationUseCase, IStartReviewUseCase
 
 from app.infrastructure.api.dependencies import (
     get_approve_use_case, 
     get_reject_use_case,
     get_current_actor_id,
-    extract_client_ip
+    extract_client_ip,
+    get_start_review_use_case
 )
 
 router = APIRouter(
@@ -92,6 +93,36 @@ async def reject_evaluation_endpoint(
         )
         return WorkflowActionResponse(**result)
         
+    except DomainException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        print(f"CRITICAL ERROR: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno del servidor.")
+
+
+@router.post(
+    "/{evaluation_id}/review",
+    response_model=WorkflowActionResponse,
+    status_code=status.HTTP_200_OK,
+    responses={400: {"model": ErrorResponse}, 401: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}
+)
+async def start_review_endpoint(
+    evaluation_id: str,
+    request: Request,
+    actor_id: str = Depends(get_current_actor_id),
+    use_case: IStartReviewUseCase = Depends(get_start_review_use_case),
+    ip_address: str = Depends(extract_client_ip)
+) -> dict:
+    """Pasa una evaluación de RECIBIDO a EN_REVISION."""
+    try:
+        result = await use_case.execute(
+            evaluation_id=evaluation_id,
+            actor_id=actor_id,
+            ip_address=ip_address
+        )
+        return WorkflowActionResponse(**result)
     except DomainException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
     except ApplicationException as e:

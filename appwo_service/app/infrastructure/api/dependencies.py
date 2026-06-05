@@ -15,9 +15,10 @@ from app.infrastructure.clients.user_service import UserServiceClient
 from app.infrastructure.clients.mock_user_service import MockUserServiceClient 
 
 # Importamos Puertos de Entrada y Casos de Uso
-from app.application.ports.input import IApproveEvaluationUseCase, IRejectEvaluationUseCase
+from app.application.ports.input import IApproveEvaluationUseCase, IRejectEvaluationUseCase, IStartReviewUseCase
 from app.application.use_cases.approve_evaluation import ApproveEvaluationUseCase
 from app.application.use_cases.reject_evaluation import RejectEvaluationUseCase
+from app.application.use_cases.start_review import StartReviewUseCase
 
 # Importar el módulo de seguridad del Core y las Configuraciones
 from app.core.security import verify_and_decode_jwt
@@ -81,6 +82,16 @@ def get_reject_use_case(
     repository: ApprovalRepository = Depends(get_approval_repository)
 ) -> IRejectEvaluationUseCase:
     return RejectEvaluationUseCase(
+        repository=repository,
+        event_publisher=redis_publisher,
+        user_service=user_client
+    )
+
+
+def get_start_review_use_case(
+    repository: ApprovalRepository = Depends(get_approval_repository)
+) -> IStartReviewUseCase:
+    return StartReviewUseCase(
         repository=repository,
         event_publisher=redis_publisher,
         user_service=user_client

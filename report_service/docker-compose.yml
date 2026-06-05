@@ -15,7 +15,7 @@ services:
       - ./app:/srv/report_service/app 
       - ./tests:/srv/report_service/tests 
     ports:
-      - "8004:8003"
+      - "8003:8000"
     depends_on:
       reports_redis:
         condition: service_healthy
