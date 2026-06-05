@@ -21,7 +21,7 @@ from starlette.types import ASGIApp
 from app.core.config import settings
 from app.core.exceptions import EXCEPTION_HANDLERS
 from app.core.logging import setup_secure_logging, SensitiveDataFilter
-from app.infrastructure.api.routers import router
+from app.infrastructure.api.routers import router, auth_router
 from app.infrastructure.messaging.publisher import event_publisher
 from app.infrastructure.api.middleware.rate_limit import rate_limit_middleware
 
@@ -167,7 +167,8 @@ def create_app() -> FastAPI:
     for exc_class, handler in EXCEPTION_HANDLERS.items():
         app.add_exception_handler(exc_class, handler)
 
-    app.include_router(router)
+    app.include_router(router)      # Router de bonus calculation
+    app.include_router(auth_router) # Router de auth (SOLO DEV)
     
     return app
 
@@ -193,9 +194,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    port = int(os.getenv("PORT", 8004))
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8002,
+        port=port,
         reload=settings.DEBUG_MODE,
     )

@@ -2,7 +2,7 @@
 
 **Versión:** 1.0.0 | **Autor:** Cruz Bravo Cruz Felipe | **Puerto:** `8002`
 
-> Motor matemático del Sistema ISA. Calcula, persiste y audita bonificaciones corporativas con arquitectura hexagonal y procesamiento vectorizado.
+> Motor matemático del Sistema ISA. Calcula, persiste y audita porcentajes de logro con arquitectura hexagonal y procesamiento vectorizado.
 
 ---
 
@@ -31,14 +31,18 @@ bonus_service/
 
 ---
 
-## Fórmula Financiera
+## Fórmula Matemática (Escala 1-5)
 
 ```
-factor_desempeño   = calificacion_global / 5.0        (0.0 – 1.0)
-factor_corporativo = impacto_ebitda                   (0.0 – 1.0)
-multiplicador      = (factor_desempeño × 0.60) + (factor_corporativo × 0.40)
-monto_bono         = salario_base_snapshot × multiplicador
+porcentaje_logro = calificacion_global × 20.0
+
+Ejemplos:
+- Calificación 1.0 → 20% de logro
+- Calificación 3.0 → 60% de logro
+- Calificación 5.0 → 100% de logro
 ```
+
+**Nota:** La calificación global DEBE estar estrictamente entre 1.0 y 5.0. Valores fuera de este rango generan un error.
 
 ---
 

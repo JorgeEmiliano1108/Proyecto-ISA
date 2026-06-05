@@ -11,9 +11,21 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from app.domain.exceptions import (
+    InvalidEBITDAException,
     InvalidCalificacionException,
     BonusAlreadyCalculatedException,
 )
+
+
+async def invalid_ebitda_handler(request: Request, exc: InvalidEBITDAException):
+    """
+    Handler para EBITDA inválido.
+    No revela el valor enviado (puede ser dato sensible).
+    """
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "Datos de entrada inválidos"},
+    )
 
 
 async def invalid_calificacion_handler(request: Request, exc: InvalidCalificacionException):
@@ -23,7 +35,7 @@ async def invalid_calificacion_handler(request: Request, exc: InvalidCalificacio
     """
     return JSONResponse(
         status_code=422,
-        content={"detail": "Calificación fuera de rango válido (1.0 - 5.0)"},
+        content={"detail": "Calificación fuera de rango válido"},
     )
 
 
@@ -41,7 +53,7 @@ async def bonus_already_calculated_handler(request: Request, exc: BonusAlreadyCa
 async def generic_exception_handler(request: Request, exc: Exception):
     """
     Handler catch-all que NO revela stack traces ni información de infraestructura.
-
+    
     OWASP Error Handling:
     - No mostrar rutas de archivos
     - No mostrar versiones de librerías
@@ -51,7 +63,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
     import logging
     logger = logging.getLogger(__name__)
     logger.error(f"Unhandled exception: {type(exc).__name__}")
-
+    
     return JSONResponse(
         status_code=500,
         content={"detail": "Error interno del servidor"},
@@ -60,6 +72,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 
 EXCEPTION_HANDLERS = {
+    InvalidEBITDAException: invalid_ebitda_handler,
     InvalidCalificacionException: invalid_calificacion_handler,
     BonusAlreadyCalculatedException: bonus_already_calculated_handler,
     Exception: generic_exception_handler,

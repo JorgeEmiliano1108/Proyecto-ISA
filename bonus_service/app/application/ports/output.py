@@ -1,27 +1,34 @@
+"""
+Contratos de salida (puertos) para la arquitectura hexagonal.
+"""
 import uuid
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from app.domain.entities import BonusCalculation
+from app.domain.entities import CalculoLogro
 
 
-class BonusRepositoryPort(ABC):
-    """Contrato de escritura sobre la tabla bonos."""
+class LogroRepositoryPort(ABC):
+    """Contrato de escritura sobre la tabla de cálculos de logro."""
 
     @abstractmethod
-    async def save(self, bonus: BonusCalculation) -> BonusCalculation:
+    async def save(self, calculo: CalculoLogro, calculado_por: Optional[str] = None) -> CalculoLogro:
+        """Guarda un cálculo de logro con cifrado de datos sensibles."""
         ...
 
     @abstractmethod
-    async def save_batch(self, bonuses: List[BonusCalculation]) -> int:
+    async def save_batch(self, calculos: List[CalculoLogro], calculado_por: Optional[str] = None) -> int:
+        """Guarda múltiples cálculos de logro. Retorna el número de registros guardados."""
         ...
 
     @abstractmethod
-    async def find_by_evaluacion(self, evaluacion_id: uuid.UUID) -> Optional[BonusCalculation]:
+    async def find_by_evaluacion(self, evaluacion_id: uuid.UUID) -> Optional[CalculoLogro]:
+        """Busca un cálculo de logro por su evaluacion_id."""
         ...
 
     @abstractmethod
-    async def find_by_periodo(self, periodo_id: int) -> List[BonusCalculation]:
+    async def find_by_periodo(self, periodo_id: int) -> List[CalculoLogro]:
+        """Busca todos los cálculos de logro de un periodo dado."""
         ...
 
 
@@ -39,7 +46,7 @@ class EvaluacionReadRepositoryPort(ABC):
         evaluacion_id: uuid.UUID,
         calificacion_global: float,
     ) -> dict:
-        """Crea una evaluación si no existe (para permitir cálculo de bono)."""
+        """Crea una evaluación si no existe (para permitir cálculo de logro)."""
         ...
 
 
@@ -51,10 +58,10 @@ class AuditLogRepositoryPort(ABC):
         self,
         user_id: str,
         action: str,
-        resource_id: str | None,
+        resource_id: str,
         status: str,
-        detail: str | None = None,
-        client_ip: str | None = None,
+        detail: Optional[str] = None,
+        client_ip: Optional[str] = None,
     ) -> None:
         """Registra una acción sin almacenar datos sensibles."""
         ...

@@ -18,6 +18,7 @@ import logging
 import time
 from collections import defaultdict
 from threading import Lock
+from typing import Optional
 
 
 logger = logging.getLogger(__name__)
@@ -247,7 +248,7 @@ def check_rate_limit(ip: str, action: str = "default") -> tuple[bool, str]:
     return True, ""
 
 
-def record_auth_result(ip: str, success: bool, reason: str | None = None):
+def record_auth_result(ip: str, success: bool, reason: Optional[str] = None):
     """
     Registra el resultado de un intento de autenticación.
     Usado por el sistema de seguridad para trackear intentos fallidos.

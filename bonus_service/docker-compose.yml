@@ -6,7 +6,7 @@ services:
       target: production
     container_name: bonus_api
     ports:
-      - "8002:8002"
+      - "8004:8002"
     env_file: .env
     secrets:
       - db_password

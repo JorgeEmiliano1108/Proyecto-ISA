@@ -5,7 +5,7 @@ Censura palabras sensibles antes de imprimir logs en consola/Docker.
 """
 import logging
 import re
-from typing import Any
+from typing import Any, Optional
 
 
 SENSITIVE_PATTERNS: list[tuple[re.Pattern, str]] = [
@@ -14,10 +14,6 @@ SENSITIVE_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r'(?<![a-zA-Z0-9])("authorization"\s*:\s*")[^"]*(")'), r'\1***REDACTED***\3'),
     (re.compile(r'(?<![a-zA-Z0-9])("bearer"\s*:\s*")[^"]*(")'), r'\1***REDACTED***\3'),
     (re.compile(r'(?<![a-zA-Z0-9])("secret"\s*:\s*")[^"]*(")'), r'\1***REDACTED***\3'),
-    (re.compile(r'(?<![a-zA-Z0-9])("salario"\s*:\s*")[0-9.,]+'), r'\1***REDACTED***'),
-    (re.compile(r'(?<![a-zA-Z0-9])("salario_base"\s*:\s*")[0-9.,]+'), r'\1***REDACTED***'),
-    (re.compile(r'(?<![a-zA-Z0-9])("monto"\s*:\s*")[0-9.,]+'), r'\1***REDACTED***'),
-    (re.compile(r'(?<![a-zA-Z0-9])("monto_final_bono"\s*:\s*")[0-9.,]+'), r'\1***REDACTED***'),
     (re.compile(r'(?<![a-zA-Z0-9])("encryption_key"\s*:\s*")[^"]*(")'), r'\1***REDACTED***\3'),
     (re.compile(r'(?<![a-zA-Z0-9])("secret_key"\s*:\s*")[^"]*(")'), r'\1***REDACTED***\3'),
     (re.compile(r'(?<![a-zA-Z0-9])("db_password"\s*:\s*")[^"]*(")'), r'\1***REDACTED***\3'),
@@ -40,7 +36,7 @@ class SensitiveDataFilter(logging.Filter):
     Filtro que censuran datos sensibles en mensajes de log.
     
     OWASP A09: Security Logging and Monitoring Failures
-    - Enmascara tokens, passwords, salarios, montos en logs
+    - Enmascara tokens, passwords y datos sensibles en logs
     - Previene filtraciones en consola Docker
     """
 
@@ -66,7 +62,7 @@ class SensitiveDataFilter(logging.Filter):
             text = pattern.sub(lambda m: m.group(0)[:m.start(1) if m.start(1) > -1 else m.group(0)], text)
 
         text = re.sub(
-            r'(?<![a-zA-Z0-9])("password"|"token"|"authorization"|"secret"|"salario"|"monto")[^\n"]{0,50}',
+            r'(?<![a-zA-Z0-9])("password"|"token"|"authorization"|"secret")[^\n"]{0,50}',
             r'\1: ***REDACTED***',
             text,
             flags=re.IGNORECASE,
@@ -75,7 +71,7 @@ class SensitiveDataFilter(logging.Filter):
         return text
 
 
-def anonymize_ip(ip: str | None) -> str | None:
+def anonymize_ip(ip: Optional[str]) -> Optional[str]:
     """
     Anonimiza parcialmente la IP del cliente.
     Solo mantiene los primeros dos octetos para IPv4.

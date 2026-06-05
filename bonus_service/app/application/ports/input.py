@@ -12,22 +12,20 @@ from typing import List, Optional
 
 
 @dataclass(frozen=True)
-class CalculateBonusCommand:
+class CalculateLogroCommand:
     """
-    DTO para cálculo individual de bono.
-    
-    Representa la intención del cliente de calcular un bono.
+    DTO para cálculo individual de porcentaje de logro.
+
+    Representa la intención del cliente de calcular un porcentaje de logro.
     No contiene validaciones (esas están en la capa de infraestructura).
     """
     evaluacion_id: uuid.UUID
-    salario_base_snapshot: float
-    impacto_ebitda_logrado: float
-    calificacion_global: Optional[float] = None
+    calificacion_global: float
 
 
 @dataclass(frozen=True)
-class CalculateBonusBatchCommand:
-    """DTO para cálculo masivo de bonos."""
+class CalculateLogroBatchCommand:
+    """DTO para cálculo masivo de porcentajes de logro."""
     registros: List[dict]
 
 
@@ -39,22 +37,22 @@ class AuditContext:
     resource_id: Optional[str] = None
 
 
-class CalculateBonusInputPort(ABC):
-    """Puerto de entrada para cálculo de bono individual."""
+class CalculateLogroInputPort(ABC):
+    """Puerto de entrada para cálculo de porcentaje de logro individual."""
     @abstractmethod
-    async def execute(self, command: CalculateBonusCommand, audit_context: AuditContext) -> dict:
+    async def execute(self, command: CalculateLogroCommand, audit_context: AuditContext) -> dict:
         ...
 
 
-class CalculateBonusBatchInputPort(ABC):
-    """Puerto de entrada para cálculo masivo de bonos."""
+class CalculateLogroBatchInputPort(ABC):
+    """Puerto de entrada para cálculo masivo de porcentajes de logro."""
     @abstractmethod
-    async def execute(self, command: CalculateBonusBatchCommand, audit_context: AuditContext) -> dict:
+    async def execute(self, command: CalculateLogroBatchCommand, audit_context: AuditContext) -> dict:
         ...
 
 
-class GetBonusReportInputPort(ABC):
-    """Puerto de entrada para generación de reportes."""
+class GetLogroReportInputPort(ABC):
+    """Puerto de entrada para generación de reportes de logro."""
     @abstractmethod
     async def execute(self, periodo_id: int) -> List[dict]:
         ...

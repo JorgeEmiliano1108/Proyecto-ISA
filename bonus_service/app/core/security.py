@@ -2,38 +2,18 @@
 Seguridad y autenticación para bonus_service.
 Cumple: OWASP SCP (Secure Coding Practices) + OWASP Secure-by-Design Framework.
 
-Validación estricta de token Bearer - Solo acepta tokens válidos.
+Validación de token Bearer con JWT real — Sin mocks ni hardcode.
 """
-import secrets
-import hmac
+import os
 import uuid
-from typing import Annotated
+from datetime import datetime, timedelta
+from typing import Annotated, List
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import hashlib
 
-
-def _load_test_token_from_secrets() -> str:
-    """Carga el token de prueba desde Docker Secrets o usa fallback seguro."""
-    try:
-        secret_path = "/run/secrets/api_test_token"
-        with open(secret_path, "r") as f:
-            token = f.read().strip()
-            if token:
-                return token
-    except FileNotFoundError:
-        pass
-    return "test12345"
-
-
-def _hash_token(token: str) -> str:
-    """Hashea el token usando SHA-256 para comparación segura."""
-    return hashlib.sha256(token.encode()).hexdigest()
-
-
-TEST_TOKEN = _load_test_token_from_secrets()
-TEST_TOKEN_HASH = _hash_token(TEST_TOKEN)
+from app.core.config import settings
 
 
 security_scheme = HTTPBearer(
@@ -42,23 +22,50 @@ security_scheme = HTTPBearer(
 )
 
 
+def _get_jwt_secret() -> str:
+    """Obtiene el secreto JWT de variables de entorno o Docker Secret."""
+    # Prioridad 1: Docker Secret
+    secret_path = os.environ.get("JWT_SECRET_PATH", "/run/secrets/jwt_secret_key")
+    if os.path.exists(secret_path):
+        with open(secret_path, "r") as f:
+            secret = f.read().strip()
+            if secret:
+                return secret
+
+    # Prioridad 2: JWT_SECRET_KEY (nombre estándar)
+    jwt_secret = os.environ.get("JWT_SECRET_KEY")
+    if jwt_secret:
+        return jwt_secret
+
+    # Prioridad 3: SECRET_KEY (nombre actual en tu .env)
+    jwt_secret = os.environ.get("SECRET_KEY")
+    if jwt_secret:
+        return jwt_secret
+
+    # Fallback para desarrollo local (NO usar en producción)
+    if os.environ.get("DEBUG_MODE", "false").lower() == "true":
+        import warnings
+        warnings.warn(
+            "USANDO JWT SECRET POR DEFECTO EN MODO DEBUG. "
+            "NUNCA HAGAS ESTO EN PRODUCCIÓN.",
+            RuntimeWarning,
+        )
+        return "dev-secret-change-in-production-do-not-use"
+
+    raise RuntimeError(
+        "JWT_SECRET_KEY o SECRET_KEY no está configurado. "
+        "Proporciona el secreto vía Docker Secret, JWT_SECRET_KEY o SECRET_KEY."
+    )
+
+
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security_scheme)]
 ) -> dict:
     """
     Valida el token Bearer y retorna los datos del usuario.
-    
+
     OWASP SCP: Validación de entrada estricta.
     OWASP Secure-by-Design: Fail-safe defaults - rechazar tokens inválidos.
-    
-    Args:
-        credentials: Credenciales extraídas del header Authorization.
-        
-    Returns:
-        dict: Usuario autenticado con sus roles.
-        
-    Raises:
-        HTTPException 401: Token no proporcionado o inválido.
     """
     if credentials is None:
         raise HTTPException(
@@ -76,33 +83,94 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token_hash = _hash_token(token)
-    
-    if not hmac.compare_digest(token_hash, TEST_TOKEN_HASH):
+    try:
+        payload = jwt.decode(
+            token,
+            _get_jwt_secret(),
+            algorithms=["HS256"],
+        )
+        user_id = payload.get("sub")
+        roles = payload.get("roles", [])
+
+        if not user_id:
+            raise ValueError("Token inválido: falta 'sub'")
+
+        return {
+            "user_id": user_id,
+            "roles": roles,
+            "authenticated": True,
+        }
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Error de autenticación",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    return {
-        "user_id": "test_user",
-        "roles": ["admin", "finanzas"],
-        "authenticated": True,
+
+CurrentUser = Annotated[dict, Depends(get_current_user)]
+
+
+# DEPRECATED: create_test_token mantenida solo para pruebas locales
+# En producción, este endpoint debe ser reemplazado por un servicio de auth real
+def create_test_token(user_id: str, roles: List[str], expires_hours: int = 24) -> str:
+    """
+    ⚠️ DEPRECATED - SOLO PARA PRUEBAS LOCALES
+    
+    Genera un token JWT para testing. En producción, NO debe usarse.
+    El endpoint /auth/login en routers.py usa esta función temporalmente.
+    """
+    import warnings
+    warnings.warn(
+        "create_test_token está DEPRECADADO. Usar solo en pruebas locales.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    
+    # Obtener secret de forma segura
+    secret = (
+        os.environ.get("JWT_SECRET_KEY") or
+        os.environ.get("SECRET_KEY") or
+        "dev-secret-change-in-production-do-not-use"
+    )
+    
+    # Si no se especifican roles, usar admin por defecto
+    if not roles:
+        roles = ["admin"]
+    
+    expires_delta = timedelta(hours=expires_hours)
+    now = datetime.utcnow()
+    exp = now + expires_delta
+    
+    payload = {
+        "sub": user_id,
+        "roles": roles,
+        "exp": exp,
+        "iat": now,
+        "jti": str(uuid.uuid4()),
     }
+    
+    token = jwt.encode(payload, secret, algorithm="HS256")
+    return token
 
 
 def require_role(*allowed_roles: str):
     """
     Decorador para proteger endpoints por rol.
-    
+
     OWASP SCP: Authorization - Verificar permisos en cada acceso.
-    
-    Args:
-        allowed_roles: Roles que tienen acceso al endpoint.
-        
-    Returns:
-        Función decoradora que valida roles del usuario.
     """
     def _checker(current_user: dict = Depends(get_current_user)) -> dict:
         if not current_user:
@@ -111,7 +179,7 @@ def require_role(*allowed_roles: str):
                 detail="No autenticado",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
+
         user_roles = current_user.get("roles", [])
         if not any(role in user_roles for role in allowed_roles):
             raise HTTPException(
@@ -119,44 +187,5 @@ def require_role(*allowed_roles: str):
                 detail="Acceso denegado: rol requerido",
             )
         return current_user
-    
-    return _checker
 
-
-CurrentUser = Annotated[dict, Depends(get_current_user)]
-
-
-def get_optional_user(
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(
-        HTTPBearer(auto_error=False)
-    )]
-) -> dict | None:
-    """
-    Retorna usuario si está autenticado, None si no.
-    Para endpoints que soportan autenticación opcional.
-    """
-    if credentials is None:
-        return None
-        
-    token = credentials.credentials
-    token_hash = _hash_token(token)
-    
-    if not hmac.compare_digest(token_hash, TEST_TOKEN_HASH):
-        return None
-        
-    return {
-        "user_id": "test_user",
-        "roles": ["admin", "finanzas"],
-        "authenticated": True,
-    }
-
-
-OptionalUser = Annotated[dict | None, Depends(get_optional_user)]
-
-
-ADMIN_USER_ID = "71323b56-e279-43e4-9603-8485dd1fecf9"
-
-
-def get_admin_user_id() -> uuid.UUID:
-    """Retorna el ID del usuario admin por defecto."""
-    return uuid.UUID(ADMIN_USER_ID)
+    return Depends(_checker)

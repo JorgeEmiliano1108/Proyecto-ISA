@@ -1,261 +1,110 @@
 """
 Schemas Pydantic para validación de entrada/salida.
 Cumple: OWASP Input Validation + OWASP SCP.
-
-VALIDACIONES IMPLEMENTADAS:
-- Validación estricta de tipos (UUID, Decimal)
-- Validación de rangos (gt, ge, le)
-- Validación de longitud (max_length)
-- Sanitización de inputs (eliminación de caracteres especiales)
-- Serialización segura de outputs (enmascaramiento de datos sensibles)
 """
 import uuid
-import re
 from datetime import datetime
-from decimal import Decimal
-from typing import List, Optional, Any
+from typing import List
 
-from pydantic import BaseModel, Field, field_validator, model_serializer, model_validator, ConfigDict
-import re
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
-def _sanitize_string_input(value: str) -> str:
+class CalculoLogroRequest(BaseModel):
     """
-    Sanitiza input de string eliminando caracteres potencialmente peligrosos.
-    
-    OWASP Input Validation:
-    - Elimina <, >, ", ', & para prevenir XSS
-    - Elimina espacios en blanco excesivos
-    - Trim de caracteres especiales
-    """
-    if not isinstance(value, str):
-        return str(value)
-    
-    value = value.strip()
-    value = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', value)
-    value = re.sub(r'[<>"\']', '', value)
-    value = re.sub(r'\s+', ' ', value)
-    
-    return value
+    Schema para request de cálculo de logro individual.
 
-
-def _sanitize_uuid_input(value: str | uuid.UUID) -> uuid.UUID:
-    """Valida y sanitiza input UUID."""
-    if isinstance(value, uuid.UUID):
-        return value
-    
-    sanitized = _sanitize_string_input(str(value))
-    
-    try:
-        return uuid.UUID(sanitized)
-    except ValueError:
-        raise ValueError("UUID inválido")
-
-
-class CalculateBonusRequest(BaseModel):
-    """
-    Schema para request de cálculo de bono individual.
-    
-    VALIDACIONES:
+    VALIDACIONES OWASP:
     - evaluacion_id: UUID válido obligatorio
-    - salario_base_snapshot: > 0, hasta 12 dígitos decimales
-    - impacto_ebitda_logrado: 0-100% (rango corporativo válido)
-    - calificacion_global: 1-5 (escala de evaluación), opcional
-    
-    CUMPLIMIENTO OWASP:
-    - Input Validation: Tipos y rangos estrictos
-    - Data Protection: Campos sensibles validados
+    - calificacion_global: estrictamente entre 1.0 y 5.0
     """
-    model_config = ConfigDict(
-        str_strip_whitespace=True,
-        json_schema_extra={
-            "example": {
-                "evaluacion_id": "123e4567-e89b-12d3-a456-426614174000",
-                "salario_base_snapshot": 50000.00,
-                "impacto_ebitda_logrado": 85.50,
-                "calificacion_global": 4.5,
-            }
-        }
-    )
+    model_config = ConfigDict(str_strip_whitespace=True)
 
     evaluacion_id: uuid.UUID = Field(
         ...,
         description="UUID único de la evaluación",
         json_schema_extra={"format": "uuid"},
     )
-    
-    salario_base_snapshot: Decimal = Field(
+
+    calificacion_global: float = Field(
         ...,
-        gt=Decimal("0"),
-        le=Decimal("9999999999.99"),
-        description="Salario base al momento del cálculo",
-    )
-    
-    impacto_ebitda_logrado: Decimal = Field(
-        ...,
-        ge=Decimal("0"),
-        le=Decimal("100"),
-        description="% EBITDA corporativo logrado (0.00 - 100.00)",
-    )
-    
-    calificacion_global: Optional[Decimal] = Field(
-        None,
-        ge=Decimal("1"),
-        le=Decimal("5"),
-        description="Calificación global (1.00 - 5.00). Opcional: se usa de la BD si se omite.",
+        ge=1.0,
+        le=5.0,
+        description="Calificación global del evaluador (1.0 - 5.0)",
     )
 
     @field_validator('evaluacion_id', mode='before')
     @classmethod
     def validate_evaluacion_id(cls, v):
         if isinstance(v, str):
-            return _sanitize_uuid_input(v)
+            try:
+                return uuid.UUID(v)
+            except ValueError:
+                raise ValueError("evaluacion_id debe ser un UUID válido")
         if isinstance(v, uuid.UUID):
             return v
         raise ValueError("evaluacion_id debe ser un UUID válido")
 
-    @field_validator('salario_base_snapshot', mode='before')
-    @classmethod
-    def validate_salario(cls, v):
-        if isinstance(v, (int, float, str)):
-            return Decimal(str(v))
-        return v
 
-    @field_validator('impacto_ebitda_logrado', mode='before')
-    @classmethod
-    def validate_ebitda(cls, v):
-        if isinstance(v, (int, float, str)):
-            return Decimal(str(v))
-        return v
-
-    @field_validator('calificacion_global', mode='before')
-    @classmethod
-    def validate_calificacion(cls, v):
-        if v is None:
-            return None
-        if isinstance(v, (int, float, str)):
-            return Decimal(str(v))
-        return v
-
-
-class BonusBatchItem(BaseModel):
-    """
-    Schema para item individual en request batch.
-    
-    Mismas validaciones que CalculateBonusRequest.
-    """
+class CalculoLogroBatchItem(BaseModel):
+    """Schema para item individual en request batch."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     evaluacion_id: uuid.UUID = Field(..., description="UUID de la evaluación")
-    
-    salario_base_snapshot: Decimal = Field(
+    calificacion_global: float = Field(
         ...,
-        gt=Decimal("0"),
-        le=Decimal("9999999999.99"),
-        description="Salario base al momento del cálculo",
-    )
-    
-    impacto_ebitda_logrado: Decimal = Field(
-        ...,
-        ge=Decimal("0"),
-        le=Decimal("100"),
-        description="% EBITDA logrado",
-    )
-    
-    calificacion_global: Decimal = Field(
-        ...,
-        ge=Decimal("1"),
-        le=Decimal("5"),
-        description="Calificación global (1-5)",
+        ge=1.0,
+        le=5.0,
+        description="Calificación global (1.0 - 5.0)",
     )
 
     @field_validator('evaluacion_id', mode='before')
     @classmethod
     def validate_evaluacion_id(cls, v):
         if isinstance(v, str):
-            return _sanitize_uuid_input(v)
-        return v
-
-    @field_validator('salario_base_snapshot', mode='before')
-    @classmethod
-    def validate_salario(cls, v):
-        if isinstance(v, (int, float, str)):
-            return Decimal(str(v))
-        return v
+            try:
+                return uuid.UUID(v)
+            except ValueError:
+                raise ValueError("evaluacion_id debe ser un UUID válido")
+        if isinstance(v, uuid.UUID):
+            return v
+        raise ValueError("evaluacion_id debe ser un UUID válido")
 
 
-class CalculateBonusBatchRequest(BaseModel):
+class CalculoLogroBatchRequest(BaseModel):
     """
     Schema para request de cálculo batch.
-    
-    VALIDACIONES:
-    - Al menos 1 registro
-    - Máximo 10,000 registros (limitar uso de recursos)
-    
     OWASP: Limitación de tamaño para prevenir DoS.
     """
-    model_config = ConfigDict(
-        str_strip_whitespace=True,
-        json_schema_extra={
-            "example": {
-                "registros": [
-                    {
-                        "evaluacion_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "salario_base_snapshot": 50000.00,
-                        "impacto_ebitda_logrado": 85.50,
-                        "calificacion_global": 4.5,
-                    }
-                ]
-            }
-        }
-    )
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-    registros: List[BonusBatchItem] = Field(
+    registros: List[CalculoLogroBatchItem] = Field(
         ...,
         min_length=1,
         max_length=10_000,
         description="Lista de registros a calcular (1-10,000)",
     )
 
-    @model_validator(mode='after')
-    def validate_unique_evaluaciones(self):
-        """Valida que no haya evaluaciones duplicadas en el batch."""
-        ids = [str(r.evaluacion_id) for r in self.registros]
-        if len(ids) != len(set(ids)):
-            raise ValueError("No se permiten evaluaciones duplicadas en un batch")
-        return self
 
-
-class BonusResponse(BaseModel):
-    """
-    Schema de respuesta para cálculo de bono.
-    
-    CUMPLIMIENTO:
-    - LFPDPPP: monto_enmascarado no expone el monto real
-    - OWASP: Fecha en formato ISO seguro
-    """
+class CalculoLogroResponse(BaseModel):
+    """Schema de respuesta para cálculo de logro."""
     model_config = ConfigDict(from_attributes=True)
 
     evaluacion_id: uuid.UUID
-    impacto_ebitda_logrado: float
-    performance_index: float
-    monto_enmascarado: str
+    calificacion_global: float
+    porcentaje_logro: float
     fecha_calculo: datetime
 
-    @model_serializer
-    def serialize(self) -> dict:
-        """Serializa la respuesta con formato seguro."""
-        return {
-            "evaluacion_id": str(self.evaluacion_id),
-            "impacto_ebitda_logrado": round(self.impacto_ebitda_logrado, 2),
-            "performance_index": round(self.performance_index, 2),
-            "monto_enmascarado": self.monto_enmascarado,
-            "fecha_calculo": (
-                self.fecha_calculo.isoformat() 
-                if hasattr(self.fecha_calculo, 'isoformat') 
-                else str(self.fecha_calculo)
-            ),
-        }
+
+class CalculoLogroReportResponse(BaseModel):
+    """Schema de respuesta para reporte de logros."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    periodo_id: int = Field(..., ge=1, description="ID del periodo")
+    total_evaluaciones: int = Field(..., ge=0, description="Total de evaluaciones")
+    calculos: List[CalculoLogroResponse] = Field(
+        default_factory=list,
+        description="Lista de cálculos de logro",
+    )
 
 
 class BatchAcceptedResponse(BaseModel):
@@ -279,35 +128,11 @@ class BatchAcceptedResponse(BaseModel):
     )
 
 
-class BonusReportResponse(BaseModel):
-    """
-    Schema de respuesta para reporte de bonos.
-    
-    CUMPLIMIENTO:
-    - Roles específicos ven montos, otros ven monto_total=None
-    - monto_enmascarado protege datos sensibles
-    """
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-    periodo_id: int = Field(..., ge=1, description="ID del periodo")
-    total_evaluaciones: int = Field(..., ge=0, description="Total de evaluaciones")
-    monto_total: Optional[float] = Field(
-        None,
-        description="Monto total (solo visible para admin/finanzas)",
-    )
-    bonos: List[BonusResponse] = Field(
-        default_factory=list,
-        description="Lista de bonos calculados",
-    )
-
-
 class ErrorResponse(BaseModel):
     """Schema para respuestas de error."""
     model_config = ConfigDict(
         str_strip_whitespace=True,
-        json_schema_extra={
-            "example": {"detail": "Token inválido"}
-        }
+        json_schema_extra={"example": {"detail": "Token inválido"}}
     )
 
     detail: str = Field(
@@ -316,16 +141,36 @@ class ErrorResponse(BaseModel):
         description="Mensaje de error (sin información sensible)",
     )
 
-    @model_serializer
-    def serialize(self) -> dict:
-        """Asegura que errores no contengan información sensible."""
-        return {"detail": self.detail[:500]}
 
-
-class HealthResponse(BaseModel):
-    """Schema para health check."""
+class LoginRequest(BaseModel):
+    """
+    Schema para request de login de prueba.
+    
+    ⚠️ SOLO PARA DESARROLLO - NO USAR EN PRODUCCIÓN
+    """
     model_config = ConfigDict(str_strip_whitespace=True)
+    
+    username: str = Field(
+        ...,
+        min_length=1,
+        max_length=50,
+        description="Nombre de usuario (para logging)",
+    )
+    password: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Contraseña (para logging)",
+    )
 
-    status: str = Field(..., pattern="^(ok|error|degraded)$")
-    service: str
-    version: str
+
+class LoginResponse(BaseModel):
+    """
+    Schema para respuesta de login.
+    
+    ⚠️ SOLO PARA DESARROLLO - NO USAR EN PRODUCCIÓN
+    """
+    access_token: str = Field(..., description="Token JWT válido")
+    token_type: str = Field("bearer", description="Tipo de token")
+    expires_in: int = Field(..., description="Tiempo de expiración en segundos")
+    roles: List[str] = Field(..., description="Roles del usuario")
