@@ -10,7 +10,7 @@ from datetime import datetime
 class CalculoLogro:
     """
     Entidad inmutable que representa el cálculo de porcentaje de logro.
-    Alineada al nuevo dominio: ZERO dinero, solo calificación y porcentaje.
+    Alineada al dominio: Solo calificación y porcentaje.
     """
     evaluacion_id: uuid.UUID          # FK hacia evaluaciones.id
     calificacion_global: float         # 1.0 – 5.0 (input del evaluador)

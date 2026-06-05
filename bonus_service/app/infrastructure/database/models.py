@@ -84,7 +84,7 @@ class EvaluacionReadModel(Base):
 
 class CalculoLogroModel(Base):
     """
-    Modelo para la tabla 'calculos_logro' — ZERO dinero, solo porcentajes.
+    Modelo para la tabla 'calculos_logro' — Solo porcentajes de logro.
 
     CUMPLIMIENTO:
     - LFPDPPP Art. 18-19: Cifrado en reposo para datos sensibles

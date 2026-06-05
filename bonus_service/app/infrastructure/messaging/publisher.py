@@ -36,7 +36,7 @@ class RedisEventPublisher:
             logger.error(f"Error publicando evento '{event_type}': {exc}")
 
     def _sanitize_payload(self, payload: dict) -> dict:
-        sensitive_fields = {"salario_base_snapshot", "monto_final_bono"}
+        sensitive_fields = {"evaluacion_id", "usuario_id"}
         return {k: v for k, v in payload.items() if k not in sensitive_fields}
 
     # ← NUEVO: Método específico para brechas de seguridad (LFPDPPP)
