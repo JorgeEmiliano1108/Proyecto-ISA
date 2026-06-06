@@ -187,3 +187,11 @@ SIMPLE_JWT = {
 # ============================================
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+
+# ============================================
+# ISA EXTERNAL API (Active Directory + SIARE)
+# ============================================
+ISA_API_URL = env('ISA_API_URL', default='http://localhost:5170')
+ISA_CLIENT_ID = env('ISA_CLIENT_ID', default='validaciones-public-api')
+ISA_CLIENT_SECRET = env('ISA_CLIENT_SECRET', default='Validaciones.Public.Api.Secret.2026')

@@ -38,20 +38,16 @@ class IsManagerOrContraloriaOrSelf(permissions.BasePermission):
     def _can_read_evaluation(self, user, obj):
         if obj.evaluado_id == user.id:
             return True
-        
+
         if obj.evaluado.manager_id == user.id:
             return True
-        
+
         if obj.evaluador_id == user.id:
             return True
-        
-        user_rol = getattr(user, 'rol', None)
-        rol_nombre = getattr(user_rol, 'nombre', '').lower() if user_rol else ''
-        
-        if rol_nombre in ['gerente', 'director']:
-            if obj.evaluado.departamento_id == user.departamento_id:
-                return True
-        
+
+        if obj.evaluador.manager_id == user.id:
+            return True
+
         return False
     
     def _can_write_evaluation(self, user, obj, rol_nombre):

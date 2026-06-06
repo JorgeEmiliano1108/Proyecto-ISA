@@ -22,6 +22,8 @@ class EvaluationService:
     - Domain 4: Reliability & Resilience (manejo de errores)
     """
     
+    FULL_ACCESS_ROLES = ['administrador', 'contraloria']
+
     ESTADO_DRAFT = 'DRAFT'
     ESTADO_SUBMITTED = 'SUBMITTED'
     ESTADO_PENDING_APPROVAL = 'PENDING_APPROVAL'
@@ -88,9 +90,11 @@ class EvaluationService:
     @transaction.atomic
     def approve_evaluation(evaluacion, usuario, comentario=None):
         """
-        Transición: SUBMITTED/PENDING_APPROVAL -> APPROVED
+        Aprobación de 2 niveles con validación jerárquica.
         
-        El coordinador/gerente aprueba la evaluación.
+        Nivel 1 (SUBMITTED -> PENDING_APPROVAL): solo el evaluador.
+        Nivel 2 (PENDING_APPROVAL -> APPROVED): solo el manager del evaluador.
+        FULL_ACCESS_ROLES (Administrador/Contraloría) bypassan la jerarquía.
         
         Args:
             evaluacion: Instancia de Evaluaciones
@@ -100,42 +104,71 @@ class EvaluationService:
         Returns:
             evaluacion: Instancia actualizada
         """
-        if evaluacion.estado not in [
-            EvaluationService.ESTADO_SUBMITTED,
-            EvaluationService.ESTADO_PENDING_APPROVAL
-        ]:
+        user_rol = getattr(usuario, 'rol', None)
+        rol_nombre = getattr(user_rol, 'nombre', '').lower() if user_rol else ''
+        is_full_access = rol_nombre in EvaluationService.FULL_ACCESS_ROLES
+
+        if evaluacion.estado == EvaluationService.ESTADO_SUBMITTED:
+            if not is_full_access and evaluacion.evaluador_id != usuario.id:
+                raise ValueError(
+                    "Solo el evaluador puede aprobar en este nivel."
+                )
+
+            estado_anterior = evaluacion.estado
+            evaluacion.estado = EvaluationService.ESTADO_PENDING_APPROVAL
+            evaluacion.fecha_actualizacion = timezone.now()
+            evaluacion.save()
+
+            HistorialEstados.objects.create(
+                evaluacion=evaluacion,
+                estado_anterior=estado_anterior,
+                estado_nuevo=EvaluationService.ESTADO_PENDING_APPROVAL,
+                usuario=usuario,
+                comentario=comentario or 'Aprobación nivel 1'
+            )
+
+        elif evaluacion.estado == EvaluationService.ESTADO_PENDING_APPROVAL:
+            if not is_full_access:
+                manager = getattr(evaluacion.evaluador, 'manager', None)
+                if not manager or manager.id != usuario.id:
+                    raise ValueError(
+                        "Solo el manager del evaluador puede aprobar en este nivel."
+                    )
+
+            estado_anterior = evaluacion.estado
+            evaluacion.estado = EvaluationService.ESTADO_APPROVED
+            evaluacion.fecha_actualizacion = timezone.now()
+            evaluacion.save()
+
+            HistorialEstados.objects.create(
+                evaluacion=evaluacion,
+                estado_anterior=estado_anterior,
+                estado_nuevo=EvaluationService.ESTADO_APPROVED,
+                usuario=usuario,
+                comentario=comentario or 'Aprobación nivel 2'
+            )
+
+        else:
             raise ValueError(
                 f"No se puede aprobar una evaluación en estado {evaluacion.estado}"
             )
-        
-        estado_anterior = evaluacion.estado
-        evaluacion.estado = EvaluationService.ESTADO_APPROVED
-        evaluacion.fecha_actualizacion = timezone.now()
-        evaluacion.save()
-        
-        HistorialEstados.objects.create(
-            evaluacion=evaluacion,
-            estado_anterior=estado_anterior,
-            estado_nuevo=EvaluationService.ESTADO_APPROVED,
-            usuario=usuario,
-            comentario=comentario or 'Evaluación aprobada'
-        )
-        
+
         return evaluacion
     
     @staticmethod
     @transaction.atomic
     def reject_evaluation(evaluacion, usuario, comentario):
         """
-        Transición: PENDING_APPROVAL -> REJECTED (regresa a DRAFT)
+        Transición: PENDING_APPROVAL -> DRAFT (rechazada)
         
-        El gerente/revisor rechaza la evaluación.
-        IMPORTANTE: Un rechazo regresa la evaluación a estado DRAFT.
+        Solo el manager del evaluador puede rechazar.
+        FULL_ACCESS_ROLES bypassan la jerarquía.
+        El comentario de rechazo es obligatorio (mín. 10 caracteres).
         
         Args:
             evaluacion: Instancia de Evaluaciones
             usuario: Usuario que rechaza
-            comentario: Comentario obligatorio (requerido por negocio)
+            comentario: Comentario obligatorio
             
         Returns:
             evaluacion: Instancia actualizada
@@ -145,17 +178,28 @@ class EvaluationService:
                 f"Solo se puede rechazar una evaluación en estado PENDING_APPROVAL. "
                 f"Estado actual: {evaluacion.estado}"
             )
-        
+
         if not comentario or len(comentario.strip()) < 10:
             raise ValueError(
                 "El comentario de rechazo es obligatorio y debe tener al menos 10 caracteres."
             )
-        
+
+        user_rol = getattr(usuario, 'rol', None)
+        rol_nombre = getattr(user_rol, 'nombre', '').lower() if user_rol else ''
+        is_full_access = rol_nombre in EvaluationService.FULL_ACCESS_ROLES
+
+        if not is_full_access:
+            manager = getattr(evaluacion.evaluador, 'manager', None)
+            if not manager or manager.id != usuario.id:
+                raise ValueError(
+                    "Solo el manager del evaluador puede rechazar la evaluación."
+                )
+
         estado_anterior = evaluacion.estado
         evaluacion.estado = EvaluationService.ESTADO_DRAFT
         evaluacion.fecha_actualizacion = timezone.now()
         evaluacion.save()
-        
+
         HistorialEstados.objects.create(
             evaluacion=evaluacion,
             estado_anterior=estado_anterior,
@@ -163,7 +207,7 @@ class EvaluationService:
             usuario=usuario,
             comentario=f"RECHAZADA: {comentario}"
         )
-        
+
         return evaluacion
     
     @staticmethod
