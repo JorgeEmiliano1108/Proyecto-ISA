@@ -1,0 +1,1605 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ISA Corporativo — API REST",
+    "version": "1.0.0",
+    "description": "API del sistema de gestión empresarial ISA Corporativo. Frontend MPA con Vanilla JS + Bootstrap 5."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api/v1",
+      "description": "Servidor de desarrollo"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "code": { "type": "string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "admin" },
+          "password": { "type": "string", "example": "admin" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "access": { "type": "string", "example": "<JWT>" },
+          "refresh": { "type": "string", "example": "<JWT>" }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "required": ["refresh"],
+        "properties": {
+          "refresh": { "type": "string", "example": "<refresh_token>" }
+        }
+      },
+      "RefreshResponse": {
+        "type": "object",
+        "properties": {
+          "access": { "type": "string", "example": "<nuevo_JWT>" },
+          "refresh": { "type": "string", "example": "<nuevo_refresh>" }
+        }
+      },
+      "JwtPayload": {
+        "type": "object",
+        "properties": {
+          "rol_nombre": { "type": "string", "example": "Administrador" },
+          "nombre_completo": { "type": "string", "example": "Admin" },
+          "username": { "type": "string", "example": "admin" },
+          "puesto": { "type": "string", "example": "" },
+          "user_id": { "type": "integer", "example": 1 },
+          "departamento_id": { "type": "integer", "example": 1 },
+          "exp": { "type": "integer", "example": 1700000000 }
+        }
+      },
+      "DashboardResumen": {
+        "type": "object",
+        "properties": {
+          "usuarios": { "type": "integer", "example": 150 },
+          "evaluaciones": { "type": "integer", "example": 45 },
+          "pendientes": { "type": "integer", "example": 12 },
+          "bonos": { "type": "integer", "example": 8 }
+        }
+      },
+      "ActividadItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "text": { "type": "string" },
+          "time": { "type": "string" },
+          "icon": { "type": "string" },
+          "color": { "type": "string" }
+        }
+      },
+      "TareaItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "date": { "type": "string" },
+          "badge": { "type": "string" }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "nombre": { "type": "string", "example": "Sarah Jenkins" },
+          "email": { "type": "string", "example": "sarah.j@empresa.com" },
+          "rol": { "type": "string", "example": "Arquitecta Sr." },
+          "dept": { "type": "string", "example": "Estrategia de Producto" },
+          "estado": { "type": "string", "example": "Activo", "enum": ["Activo", "Inactivo"] },
+          "ultimoLogin": { "type": "string", "example": "Hace 2 min" }
+        }
+      },
+      "UsuariosResumen": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer", "example": 1284 },
+          "activos": { "type": "integer", "example": 412 }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true }
+        }
+      },
+      "Categoria": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nombre": { "type": "string" },
+          "icono": { "type": "string" },
+          "activo": { "type": "boolean" }
+        }
+      },
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "NAV_DASHBOARD_MAIN" },
+          "titulo": { "type": "string", "example": "Dashboard" },
+          "icono": { "type": "string", "example": "bi-speedometer2" },
+          "estado": { "type": "string", "example": "VISIBLE", "enum": ["VISIBLE", "BLOQUEADO", "OCULTO"] },
+          "badgeClass": { "type": "string" },
+          "subitems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "titulo": { "type": "string" },
+                "icono": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "ActividadCatalogo": {
+        "type": "object",
+        "properties": {
+          "usuario": { "type": "string" },
+          "accion": { "type": "string" },
+          "detalle": { "type": "string" },
+          "tiempo": { "type": "string" },
+          "color": { "type": "string" }
+        }
+      },
+      "CriterioEvaluacion": {
+        "type": "object",
+        "required": ["pregunta", "tipo"],
+        "properties": {
+          "pregunta": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["OPCIÓN MÚLTIPLE", "ESCALA LINEAL", "TEXTO LARGO"] },
+          "opciones": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "EvaluacionDefinition": {
+        "type": "object",
+        "required": ["title", "criteria"],
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "audience": { "type": "string" },
+          "criteria": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CriterioEvaluacion" }
+          }
+        }
+      },
+      "FilaSupervision": {
+        "type": "array",
+        "description": "Array de 12 elementos: [#, Usuario, Estado, Liderazgo, Comunicación, Proactividad, Colaboración, Adaptabilidad, Orient. Resultados, Promedio, Eval. Global, Última Modificación]",
+        "example": [1, "Juan Pérez", "En Proceso", 4, 5, 3, 4, 5, 4, 4.17, 3.34, "2025-01-15 10:30"],
+        "items": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" },
+            { "type": "number" }
+          ]
+        }
+      },
+      "Solicitud": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "tipo": { "type": "string", "enum": ["EVALUACIÓN", "BONO", "ACTUALIZACIÓN"] },
+          "titulo": { "type": "string" },
+          "solicitante": { "type": "string" },
+          "puesto": { "type": "string" },
+          "fecha": { "type": "string" },
+          "resumen": { "type": "string" },
+          "monto": { "type": "string" },
+          "icono": { "type": "string" },
+          "colorIcono": { "type": "string" },
+          "bgIcono": { "type": "string" },
+          "badgeColor": { "type": "string" }
+        }
+      },
+      "HistorialSolicitud": {
+        "type": "object",
+        "properties": {
+          "entidad": { "type": "string" },
+          "tipo": { "type": "string" },
+          "accion": { "type": "string" },
+          "fecha": { "type": "string" },
+          "resultado": { "type": "string", "enum": ["APROBADO", "RECHAZADO"] },
+          "aprobador": { "type": "string" }
+        }
+      },
+      "ReportesResponse": {
+        "type": "object",
+        "properties": {
+          "kpis": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "integer" },
+              "promedio": { "type": "number" },
+              "tasa": { "type": "string" },
+              "registros": { "type": "integer" },
+              "comp": { "type": "string" }
+            }
+          },
+          "tendencias": {
+            "type": "object",
+            "properties": {
+              "labels": { "type": "array", "items": { "type": "string" } },
+              "data": { "type": "array", "items": { "type": "number" } },
+              "titulo": { "type": "string" }
+            }
+          },
+          "departamentos": {
+            "type": "object",
+            "properties": {
+              "labels": { "type": "array", "items": { "type": "string" } },
+              "data": { "type": "array", "items": { "type": "number" } }
+            }
+          },
+          "tabla": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "nombre": { "type": "string" },
+                "dept": { "type": "string" },
+                "fecha": { "type": "string" },
+                "score": { "type": "number" },
+                "status": { "type": "string" },
+                "colorStatus": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "ProgramasBonos": {
+        "type": "object",
+        "properties": {
+          "programa1": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "participantes": { "type": "integer" },
+              "presupuesto": { "type": "string" },
+              "desc": { "type": "string" }
+            }
+          },
+          "programa2": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "lanzamiento": { "type": "string" },
+              "responsabilidad": { "type": "string" },
+              "desc": { "type": "string" }
+            }
+          },
+          "flujo": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "string" },
+              "preparacion": { "type": "integer" },
+              "totalEmpleados": { "type": "integer" }
+            }
+          }
+        }
+      },
+      "AsignacionEmpleado": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nombre": { "type": "string" },
+          "puesto": { "type": "string" },
+          "programa": { "type": "string" },
+          "metodo": { "type": "string" },
+          "estado": { "type": "string" },
+          "progreso": { "type": "integer" },
+          "claseProgreso": { "type": "string" },
+          "pago": { "type": "string" }
+        }
+      },
+      "Consulta": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1700000000000 },
+          "usuario": { "type": "string" },
+          "fecha": { "type": "string", "format": "date" },
+          "pregunta": { "type": "string" },
+          "estado": { "type": "string", "enum": ["pendiente", "respondido"] },
+          "respuesta": { "type": "string", "nullable": true },
+          "fechaRespuesta": { "type": "string", "format": "date", "nullable": true }
+        }
+      },
+      "ResponderConsultaRequest": {
+        "type": "object",
+        "required": ["respuesta"],
+        "properties": {
+          "respuesta": { "type": "string" }
+        }
+      },
+      "Notificacion": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1700000000000 },
+          "titulo": { "type": "string" },
+          "mensaje": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["tarea", "comunicado", "mensaje"] },
+          "fecha": { "type": "string", "format": "date" },
+          "fechaLimite": { "type": "string", "format": "date", "nullable": true },
+          "para": { "type": "string", "enum": ["todos", "usuario"] },
+          "leido": { "type": "boolean", "default": false }
+        }
+      },
+      "NotificacionRequest": {
+        "type": "object",
+        "required": ["titulo", "mensaje", "tipo"],
+        "properties": {
+          "titulo": { "type": "string" },
+          "mensaje": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["tarea", "comunicado"] },
+          "fechaLimite": { "type": "string", "format": "date" },
+          "para": { "type": "string", "enum": ["todos", "usuario"] }
+        }
+      },
+      "ThemeColor": {
+        "type": "object",
+        "properties": {
+          "color": { "type": "string", "example": "#2563eb" }
+        }
+      },
+      "Perfil": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string" },
+          "email": { "type": "string" },
+          "telefono": { "type": "string" },
+          "departamento": { "type": "string" },
+          "puesto": { "type": "string" }
+        }
+      },
+      "UsuarioDashboard": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string", "example": "Sarah Jenkins" },
+          "promedio": { "type": "number", "example": 4.92 },
+          "pendientes": { "type": "integer", "example": 2 },
+          "vencimiento": { "type": "string", "example": "20 de Octubre" },
+          "bono": { "type": "string", "example": "$2,450.00" }
+        }
+      },
+      "EvaluacionPendiente": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 201 },
+          "titulo": { "type": "string" },
+          "limite": { "type": "string" },
+          "categoria": { "type": "string" }
+        }
+      },
+      "EvaluacionHistorial": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "titulo": { "type": "string" },
+          "fecha": { "type": "string" },
+          "evaluador": { "type": "string" },
+          "score": { "type": "number" }
+        }
+      },
+      "GrillaISA": {
+        "type": "object",
+        "properties": {
+          "colaborador": { "type": "string" },
+          "puesto_colaborador": { "type": "string" },
+          "evaluador": { "type": "string" },
+          "puesto_evaluador": { "type": "string" },
+          "jefe_inmediato": { "type": "string" },
+          "puesto_jefe": { "type": "string" },
+          "fecha_ingreso": { "type": "string", "format": "date" },
+          "fecha_evaluacion": { "type": "string", "format": "date" },
+          "fecha_revision": { "type": "string", "format": "date" },
+          "periodo": { "type": "string" },
+          "resultados_2025": { "type": "string" },
+          "compromisos_2026": { "type": "string" },
+          "competencias": {
+            "type": "object",
+            "properties": {
+              "1": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Orientación al cliente" },
+              "2": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Enfoque a resultados" },
+              "3": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Confiabilidad" },
+              "4": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Trabajo en equipo" },
+              "5": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Innovación y desarrollo" },
+              "6": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Liderazgo" }
+            }
+          },
+          "evaluacion_global": { "type": "string" },
+          "comentarios_evaluador": { "type": "string" },
+          "comentarios_colaborador": { "type": "string" },
+          "firma_colaborador": { "type": "string" },
+          "fecha_entrega": { "type": "string", "format": "date" },
+          "firma_evaluador": { "type": "string" },
+          "firma_jefe": { "type": "string" }
+        }
+      },
+      "BonoActual": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string" },
+          "descripcion": { "type": "string" },
+          "progreso": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "montoProyectado": { "type": "string" },
+          "fechaInicio": { "type": "string" },
+          "fechaCierre": { "type": "string" },
+          "estado": { "type": "string" }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "properties": {
+          "titulo": { "type": "string" },
+          "meta": { "type": "string" },
+          "actual": { "type": "string" },
+          "icono": { "type": "string" }
+        }
+      },
+      "Pago": {
+        "type": "object",
+        "properties": {
+          "fecha": { "type": "string" },
+          "concepto": { "type": "string" },
+          "monto": { "type": "string" },
+          "estado": { "type": "string" }
+        }
+      },
+      "MetricasHistoricas": {
+        "type": "object",
+        "properties": {
+          "etiquetas": { "type": "array", "items": { "type": "string" } },
+          "valores": { "type": "array", "items": { "type": "number" } }
+        }
+      },
+      "CompetenciasData": {
+        "type": "object",
+        "properties": {
+          "categorias": { "type": "array", "items": { "type": "string" } },
+          "valores": { "type": "array", "items": { "type": "number" } }
+        }
+      },
+      "ReporteDocumento": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "periodo": { "type": "string" },
+          "tipo": { "type": "string" },
+          "score": { "type": "number" },
+          "fecha": { "type": "string" }
+        }
+      },
+      "CrearConsultaRequest": {
+        "type": "object",
+        "required": ["pregunta"],
+        "properties": {
+          "pregunta": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/auth/login/": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesión",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh/": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Refrescar token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refrescado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RefreshResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token inválido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/resumen": {
+      "get": {
+        "tags": ["Admin — Dashboard"],
+        "summary": "KPIs del dashboard",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Indicadores clave",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DashboardResumen" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/actividad": {
+      "get": {
+        "tags": ["Admin — Dashboard"],
+        "summary": "Actividad reciente",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de actividad reciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ActividadItem" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/dashboard/tareas": {
+      "get": {
+        "tags": ["Admin — Dashboard"],
+        "summary": "Próximas tareas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de próximas tareas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/TareaItem" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/usuarios": {
+      "get": {
+        "tags": ["Admin — Usuarios"],
+        "summary": "Listar usuarios",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Filtro por nombre o email"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Usuario" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin — Usuarios"],
+        "summary": "Crear usuario",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Usuario" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/usuarios/resumen": {
+      "get": {
+        "tags": ["Admin — Usuarios"],
+        "summary": "KPIs de usuarios",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Resumen de usuarios",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UsuariosResumen" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/usuarios/{id}": {
+      "put": {
+        "tags": ["Admin — Usuarios"],
+        "summary": "Actualizar usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Usuario" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Admin — Usuarios"],
+        "summary": "Eliminar usuario",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario eliminado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/catalogos/categorias": {
+      "get": {
+        "tags": ["Admin — Catálogos"],
+        "summary": "Categorías maestras",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de categorías",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Categoria" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/catalogos/menu": {
+      "get": {
+        "tags": ["Admin — Catálogos"],
+        "summary": "Estructura del menú de navegación",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Árbol del menú",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/MenuItem" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/catalogos/actividad": {
+      "get": {
+        "tags": ["Admin — Catálogos"],
+        "summary": "Registro de actividad de cambios",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Actividad de cambios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ActividadCatalogo" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/evaluaciones/publish": {
+      "post": {
+        "tags": ["Admin — Evaluaciones"],
+        "summary": "Publicar evaluación",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EvaluacionDefinition" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evaluación publicada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/evaluaciones/supervision": {
+      "get": {
+        "tags": ["Admin — Evaluaciones"],
+        "summary": "Datos de supervisión",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "periodo",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Filas de la grilla de supervisión",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/FilaSupervision" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/aprobaciones/pendientes": {
+      "get": {
+        "tags": ["Admin — Aprobaciones"],
+        "summary": "Solicitudes pendientes",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de solicitudes pendientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Solicitud" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/aprobaciones/historial": {
+      "get": {
+        "tags": ["Admin — Aprobaciones"],
+        "summary": "Historial de aprobaciones",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Historial de solicitudes procesadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/HistorialSolicitud" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/aprobaciones/{id}/aprobar": {
+      "post": {
+        "tags": ["Admin — Aprobaciones"],
+        "summary": "Aprobar solicitud",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solicitud aprobada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/aprobaciones/{id}/rechazar": {
+      "post": {
+        "tags": ["Admin — Aprobaciones"],
+        "summary": "Rechazar solicitud",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solicitud rechazada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reportes": {
+      "get": {
+        "tags": ["Admin — Reportes"],
+        "summary": "Reportes con analítica",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "temporalidad",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["30", "trimestre", "anual"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos de reportes",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReportesResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/bonos/programas": {
+      "get": {
+        "tags": ["Admin — Bonos"],
+        "summary": "Resumen de programas de incentivos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Programas y flujo de caja",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProgramasBonos" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin — Bonos"],
+        "summary": "Crear nuevo programa de incentivos",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "tipo": { "type": "string" },
+                  "presupuesto": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Programa creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/bonos/empleados": {
+      "get": {
+        "tags": ["Admin — Bonos"],
+        "summary": "Asignación de empleados a bonos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Tabla de asignación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/AsignacionEmpleado" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/consultas": {
+      "get": {
+        "tags": ["Admin — Consultas"],
+        "summary": "Todas las consultas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de consultas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Consulta" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/consultas/{id}": {
+      "delete": {
+        "tags": ["Admin — Consultas"],
+        "summary": "Eliminar consulta",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Consulta eliminada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/consultas/{id}/responder": {
+      "put": {
+        "tags": ["Admin — Consultas"],
+        "summary": "Responder consulta",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResponderConsultaRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta respondida",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notificaciones": {
+      "get": {
+        "tags": ["Admin — Notificaciones"],
+        "summary": "Todas las notificaciones",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de notificaciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Notificacion" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Admin — Notificaciones"],
+        "summary": "Crear notificación",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NotificacionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Notificación creada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/configuracion/theme": {
+      "get": {
+        "tags": ["Admin — Configuración"],
+        "summary": "Obtener color del tema",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Color actual del tema",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ThemeColor" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Admin — Configuración"],
+        "summary": "Actualizar color del tema",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ThemeColor" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Color actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/perfil": {
+      "get": {
+        "tags": ["Perfil"],
+        "summary": "Obtener perfil del usuario autenticado",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Datos del perfil",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Perfil" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Perfil"],
+        "summary": "Actualizar perfil",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Perfil" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/dashboard": {
+      "get": {
+        "tags": ["Usuario — Dashboard"],
+        "summary": "Resumen personal del usuario",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Datos del dashboard personal",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UsuarioDashboard" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/dashboard/evaluaciones": {
+      "get": {
+        "tags": ["Usuario — Dashboard"],
+        "summary": "Últimas evaluaciones del usuario",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de evaluaciones recientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/EvaluacionHistorial" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/dashboard/tareas": {
+      "get": {
+        "tags": ["Usuario — Dashboard"],
+        "summary": "Próximas tareas del usuario",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de tareas pendientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/TareaItem" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/evaluaciones/pendientes": {
+      "get": {
+        "tags": ["Usuario — Evaluaciones"],
+        "summary": "Evaluaciones pendientes del usuario",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de evaluaciones por completar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/EvaluacionPendiente" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/evaluaciones/historial": {
+      "get": {
+        "tags": ["Usuario — Evaluaciones"],
+        "summary": "Historial de evaluaciones",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Evaluaciones anteriores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/EvaluacionHistorial" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/evaluaciones/{id}": {
+      "get": {
+        "tags": ["Usuario — Evaluaciones"],
+        "summary": "Obtener evaluación (GrillaISA)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos completos de la evaluación",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GrillaISA" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Usuario — Evaluaciones"],
+        "summary": "Guardar evaluación",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GrillaISA" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evaluación guardada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/bonos/actual": {
+      "get": {
+        "tags": ["Usuario — Bonos"],
+        "summary": "Bono del ciclo actual",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Información del bono actual",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BonoActual" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/bonos/metas": {
+      "get": {
+        "tags": ["Usuario — Bonos"],
+        "summary": "Metas vinculadas al bono",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de metas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Meta" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/bonos/historial": {
+      "get": {
+        "tags": ["Usuario — Bonos"],
+        "summary": "Historial de pagos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Pagos recibidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Pago" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/reportes/metricas": {
+      "get": {
+        "tags": ["Usuario — Reportes"],
+        "summary": "Métricas históricas (gráfica de líneas)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Datos para gráfica de tendencia",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MetricasHistoricas" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/reportes/competencias": {
+      "get": {
+        "tags": ["Usuario — Reportes"],
+        "summary": "Datos de competencias (gráfica radar)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Datos para gráfica radar",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompetenciasData" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usuario/reportes/documentos": {
+      "get": {
+        "tags": ["Usuario — Reportes"],
+        "summary": "Documentos de reportes generados",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ReporteDocumento" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notificaciones": {
+      "get": {
+        "tags": ["Notificaciones"],
+        "summary": "Mis notificaciones",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Notificaciones del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Notificacion" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notificaciones/{id}/leer": {
+      "put": {
+        "tags": ["Notificaciones"],
+        "summary": "Marcar notificación como leída",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notificación marcada como leída",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/consultas": {
+      "post": {
+        "tags": ["Consultas"],
+        "summary": "Crear consulta",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CrearConsultaRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Consulta creada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/consultas/mias": {
+      "get": {
+        "tags": ["Consultas"],
+        "summary": "Mis consultas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Consultas del usuario autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Consulta" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
