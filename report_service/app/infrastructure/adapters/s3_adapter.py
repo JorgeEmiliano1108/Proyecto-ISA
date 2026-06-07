@@ -62,6 +62,11 @@ class S3Adapter(CloudStoragePort):
             logger.error(f"Fallo al subir {file_name} a S3: {e}")
             raise
 
+    def _rewrite_url_for_public(self, url: str) -> str:
+        internal = settings.S3_ENDPOINT.rstrip('/')
+        public = settings.S3_PUBLIC_ENDPOINT.rstrip('/') if settings.S3_PUBLIC_ENDPOINT else internal
+        return url.replace(internal, public)
+
     def generate_presigned_url(self, file_name: str, expires_in_sec: int = 300) -> str:
         """
         Genera una URL segura y temporal (Pre-signed URL).
@@ -76,7 +81,7 @@ class S3Adapter(CloudStoragePort):
                 },
                 ExpiresIn=expires_in_sec
             )
-            return url
+            return self._rewrite_url_for_public(url)
         except Exception as e:
             logger.error(f"Error generando Presigned URL para {file_name}: {e}")
             raise

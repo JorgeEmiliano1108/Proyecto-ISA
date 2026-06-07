@@ -13,7 +13,8 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.infrastructure.api.schemas import GenerateReportRequest
-from app.infrastructure.api.dependencies import get_job_store, get_vector_db
+from app.infrastructure.api.dependencies import get_job_store, get_vector_db, get_status_use_case
+from app.application.use_cases.get_report_status import GetReportStatusUseCase
 from app.infrastructure.messaging.job_store import JobMetadataStore
 from app.infrastructure.adapters.vector_adapter import QdrantAdapter
 from app.core.security import verify_token
@@ -68,22 +69,14 @@ def generate_report(
 def get_status(
     request: Request,
     job_id: str, 
-    job_store: JobMetadataStore = Depends(get_job_store),
+    status_use_case: GetReportStatusUseCase = Depends(get_status_use_case),
     current_user: dict = Depends(verify_token) 
 ):
     """Consulta (Polling) el estado del reporte efímero."""
-    job_data = job_store.get_job(job_id)
-    if not job_data:
+    result = status_use_case.execute(job_id)
+    if result["status"] == "NOT_FOUND":
         raise HTTPException(status_code=404, detail="Job no encontrado en Redis.")
-        
-    status_str = job_data.get("status", "UNKNOWN")
-    result_url = job_data.get("result", job_data.get("pdf_s3_path", None))
-    
-    return {
-        "job_id": job_id,
-        "status": status_str,
-        "download_url": result_url
-    }
+    return result
 
 # ==============================================================================
 # 2. REGLAS RAG (Gestión de Identidad Corporativa)

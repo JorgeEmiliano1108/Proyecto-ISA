@@ -18,8 +18,8 @@ from app.application.ports.output import (
 )
 from app.domain.sanitizer import DataSanitizer
 
-# CORRECCIÓN: Importamos la excepción estandarizada desde el core
 from app.core.exceptions import ResourceNotFoundException
+from app.infrastructure.monitoring.metrics import REPORT_GENERATION_ERRORS
 
 logger = logging.getLogger("ms_reports.use_case")
 
@@ -124,6 +124,7 @@ class GenerateEvaluationReportUseCase:
         except Exception as exc:
             tb = traceback.format_exc()
             logger.error(f"[{job_id}] Fallo crítico: {tb}")
+            REPORT_GENERATION_ERRORS.labels(error_type="use_case").inc()
             
             self.job_store.update_status(job_id, "FAILED")
             self.job_store.set_result(job_id, "") 

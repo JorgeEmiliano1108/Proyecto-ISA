@@ -28,7 +28,7 @@ class JobMetadataStore:
         self._r.hset(self._key(job_id), mapping={"progress": int(progress)})
 
     def set_result(self, job_id: str, s3_path: str):
-        self._r.hset(self._key(job_id), mapping={"pdf_s3_path": s3_path})
+        self._r.hset(self._key(job_id), mapping={"result": s3_path})
 
     def set_error(self, job_id: str, msg: str):
         self._r.hset(self._key(job_id), mapping={"error_message": msg})

@@ -19,13 +19,12 @@ services:
       - ENVIRONMENT=development
       # Las credenciales deberían coincidir con los servicios de abajo
       - POSTGRES_SERVER=postgres_audit
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=audit_db
+      - POSTGRES_USER=${AUDIT_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${AUDIT_DB_PASSWORD:-secret}
+      - POSTGRES_DB=${AUDIT_DB_NAME:-audit_db}
       - REDIS_SERVER=redis_audit
       - REDIS_PORT=6379
-      - SECRET_KEY=dev_secret_key_123
-      # CORRECCIÓN: Apunta al nombre del servicio
+      - SECRET_KEY=${AUDIT_SECRET_KEY:-dev_secret_key_123}
       - OLLAMA_SERVER=ollama
       - OLLAMA_PORT=11434
     depends_on:
@@ -36,12 +35,12 @@ services:
 
   # Base de Datos
   postgres_audit:
-    image: postgres:16-alpine # Usamos Alpine para servicios externos puros
+    image: postgres:16-alpine
     container_name: postgres_audit_dev
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=audit_db
+      - POSTGRES_USER=${AUDIT_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${AUDIT_DB_PASSWORD:-secret}
+      - POSTGRES_DB=${AUDIT_DB_NAME:-audit_db}
     ports:
       - "5432:5432"
     volumes:
@@ -94,12 +93,12 @@ services:
     environment:
       - ENVIRONMENT=development               
       - POSTGRES_SERVER=postgres_audit
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=audit_db
+      - POSTGRES_USER=${AUDIT_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${AUDIT_DB_PASSWORD:-secret}
+      - POSTGRES_DB=${AUDIT_DB_NAME:-audit_db}
       - REDIS_SERVER=redis_audit
       - REDIS_PORT=6379
-      - SECRET_KEY=dev_secret_key_123 
+      - SECRET_KEY=${AUDIT_SECRET_KEY:-dev_secret_key_123} 
       - OLLAMA_SERVER=ollama
       - OLLAMA_PORT=11434       
     depends_on:

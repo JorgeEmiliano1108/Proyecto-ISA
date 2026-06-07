@@ -55,8 +55,7 @@ def get_metrics_response() -> Response:
     try:
         # Nos conectamos a Redis para ver cuántos jobs de Celery están pendientes
         r = redis.from_url(settings.REDIS_URL)
-        # Celery por defecto usa la clave 'celery' para su lista de tareas
-        queue_length = r.llen("celery")
+        queue_length = r.llen("reports_queue")
         CELERY_QUEUE_LENGTH.set(queue_length)
     except Exception as e:
         logger.error(f"Error al leer la cola de Celery desde Redis: {e}")

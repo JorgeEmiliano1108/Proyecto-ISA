@@ -60,10 +60,11 @@ services:
   reports_db:
     image: postgres:16-alpine
     container_name: isa_reports_db
+    env_file: .env
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres_secure_password_2024
-      - POSTGRES_DB=isa_db
+      - POSTGRES_USER=${REPORTS_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${REPORTS_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${REPORTS_DB_NAME:-isa_db}
       - POSTGRES_INITDB_ARGS=--data-checksums
     command: postgres -c shared_buffers=256MB -c wal_level=replica
     ports:
@@ -131,8 +132,8 @@ services:
     image: minio/minio:latest
     container_name: isa_reports_minio
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
     command: server /data --console-address ":9001"
     ports:
       - "9003:9000" # API S3

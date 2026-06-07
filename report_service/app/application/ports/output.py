@@ -5,7 +5,7 @@ Definen las interfaces que los adaptadores de infraestructura deben implementar.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional  # noqa: F401
 from app.domain.entities import EvaluacionISA
 
 class ISARepositoryPort(ABC):
@@ -77,7 +77,12 @@ class JobStorePort(ABC):
     @abstractmethod
     def update_status(self, job_id: str, status: str) -> None:
         pass
-        
+    
     @abstractmethod
     def set_result(self, job_id: str, url: str) -> None:
+        pass
+
+    @abstractmethod
+    def get_job(self, job_id: str) -> Optional[dict]:
+        """Recupera los datos completos de un job (estado, resultado, etc.)."""
         pass

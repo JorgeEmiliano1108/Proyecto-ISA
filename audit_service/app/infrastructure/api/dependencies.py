@@ -1,4 +1,5 @@
 # app/infrastructure/api/dependencies.py
+import jwt
 from typing import AsyncGenerator
 from fastapi import Depends, Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -10,9 +11,16 @@ from app.application.ports.output import EventPublisherPort
 from app.application.use_cases.record_log import RecordAuditLogUseCase
 from app.application.use_cases.get_history import GetAuditHistoryUseCase
 from app.core.exceptions import UnauthorizedException
+from app.core.config import settings
 from app.infrastructure.messaging.publisher import RedisEventPublisher
 
 security = HTTPBearer()
+
+
+def _load_pem(value: str) -> str:
+    """Convierte \\n literales a saltos de línea reales en una clave PEM."""
+    return value.replace("\\n", "\n")
+
 
 # Seguridad (Authentication & Proxy Support)
 
@@ -29,19 +37,23 @@ async def extract_client_ip(request: Request) -> str:
 
 async def get_current_user_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     """
-    Simulación de validación de JWT RS256. 
-    En producción, aquí usas la llave pública del Auth Service para decodificar.
+    Valida el JWT RS256 contra la llave pública de ISA y extrae actor_id + rol.
     """
     token = credentials.credentials
-    # Mock de decodificación: En un caso real -> jwt.decode(token, public_key, algorithms=["RS256"])
-    if not token or token == "invalid":
-        raise UnauthorizedException(internal_message="Token inválido o expirado.")
-    
-    # Retornamos el payload simulado del JWT
-    return {
-        "sub": "123e4567-e89b-12d3-a456-426614174000", # actor_id
-        "role": "ADMIN" # requester_role
-    }
+    if not token:
+        raise UnauthorizedException(internal_message="Token no proporcionado.")
+
+    public_key = _load_pem(settings.JWT_PUBLIC_KEY)
+    try:
+        payload = jwt.decode(token, public_key, algorithms=["RS256"])
+        return {
+            "sub": payload.get("user_id"),
+            "role": payload.get("rol_nombre", "usuario")
+        }
+    except jwt.ExpiredSignatureError:
+        raise UnauthorizedException(internal_message="Token expirado.")
+    except jwt.InvalidTokenError:
+        raise UnauthorizedException(internal_message="Token inválido o firma no reconocida.")
 
 
 # Ensamblaje de Casos de Uso (Dependency Injection)

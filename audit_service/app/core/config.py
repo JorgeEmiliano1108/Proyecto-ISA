@@ -19,7 +19,8 @@ class Settings(BaseSettings):
 
     # Seguridad Criptográfica (OWASP)
     
-    SECRET_KEY: SecretStr 
+    SECRET_KEY: SecretStr
+    JWT_PUBLIC_KEY: str = ""
 
    
     # Base de Datos (PostgreSQL async)

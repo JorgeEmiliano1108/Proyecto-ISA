@@ -23,16 +23,34 @@ from app.core.rbac import rbac_manager
 
 logger = logging.getLogger("report_service.repository")
 
+def _run_async(coro):
+    """Ejecuta un corutina desde contexto síncrono sin importar si hay event loop activo."""
+    try:
+        loop = asyncio.get_running_loop()
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(asyncio.run, coro)
+                return future.result()
+    except RuntimeError:
+        pass
+    return asyncio.run(coro)
+
 class PostgresISARepository(ISARepositoryPort):
     def __init__(self):
         self.db_url = settings.DATABASE_URL
+        self._table_checked = False
         if not self.db_url:
             logger.warning("DATABASE_URL no configurada. Las operaciones a BD fallarán.")
-        else:
-            try:
-                asyncio.run(self._ensure_audit_table_exists_async())
-            except Exception as e:
-                logger.error(f"Error al verificar la tabla de auditoría: {e}")
+
+    def _ensure_audit_table_exists(self):
+        if self._table_checked:
+            return
+        try:
+            _run_async(self._ensure_audit_table_exists_async())
+            self._table_checked = True
+        except Exception as e:
+            logger.error(f"Error al verificar la tabla de auditoría: {e}")
 
     async def _ensure_audit_table_exists_async(self):
         """Garantiza la existencia de la tabla de auditoría utilizando el motor asíncrono."""
@@ -53,7 +71,8 @@ class PostgresISARepository(ISARepositoryPort):
     # IMPLEMENTACIÓN DEL PUERTO DE LECTURA (TRANSACCIONAL) + RBAC + IDOR
     # =========================================================================
     def get_evaluation_full_data(self, evaluacion_id: str, requester_id: str, requester_role: str) -> Optional[EvaluacionISA]:
-        return asyncio.run(self._get_evaluation_full_data_async(evaluacion_id, requester_id, requester_role))
+        self._ensure_audit_table_exists()
+        return _run_async(self._get_evaluation_full_data_async(evaluacion_id, requester_id, requester_role))
 
     async def _get_evaluation_full_data_async(self, evaluacion_id: str, requester_id: str, requester_role: str) -> Optional[EvaluacionISA]:
         """
@@ -143,7 +162,8 @@ class PostgresISARepository(ISARepositoryPort):
                 return None
 
     def save_audit_log(self, job_id: str, status: str, result_url: Optional[str] = None, error: Optional[str] = None) -> None:
-        asyncio.run(self._save_audit_log_async(job_id, status, result_url, error))
+        self._ensure_audit_table_exists()
+        _run_async(self._save_audit_log_async(job_id, status, result_url, error))
 
     async def _save_audit_log_async(self, job_id: str, status: str, result_url: Optional[str] = None, error: Optional[str] = None) -> None:
         async with AsyncSessionLocal() as session:

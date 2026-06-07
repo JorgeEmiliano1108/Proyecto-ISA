@@ -16,6 +16,12 @@ from app.core.config import settings
 logger = logging.getLogger("ms_reports.security")
 security = HTTPBearer()
 
+
+def _load_pem(value: str) -> str:
+    """Convierte \\n literales a saltos de línea reales en una clave PEM."""
+    return value.replace("\\n", "\n")
+
+
 # Inicializamos el cliente de Redis para consultar la Lista de Revocación (Denylist)
 try:
     redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -30,12 +36,13 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
     """
     token = credentials.credentials
     try:
+        public_key = _load_pem(settings.JWT_PUBLIC_KEY)
         # Decodificamos el token exigiendo claims mínimos obligatorios
         payload = jwt.decode(
             token, 
-            settings.JWT_PUBLIC_KEY, 
+            public_key, 
             algorithms=[settings.ALGORITHM],
-            options={"require": ["exp", "sub"]} # sub (Subject/User ID), exp (Expiration)
+            options={"require": ["exp"]} # exp (Expiration) obligatorio
         )
         
         # Validación contra Lista de Revocación en Redis (Para soporte de Logout)

@@ -17,12 +17,13 @@ from opentelemetry.instrumentation.celery import CeleryInstrumentor
 # Importaciones de la Arquitectura Hexagonal
 from app.workers.celery_app import celery_app
 from app.infrastructure.messaging.job_store import JobMetadataStore
-from app.infrastructure.database.repository import PostgresISARepository
+from app.infrastructure.adapters.http_repository import HttpISARepository
 from app.infrastructure.adapters.llm_adapter import OllamaAdapter
 from app.infrastructure.adapters.vector_adapter import QdrantAdapter
 from app.infrastructure.adapters.pdf_adapter import WeasyPrintReportGenerator
 from app.infrastructure.adapters.s3_adapter import S3Adapter 
 from app.application.use_cases.generate_evaluation_report import GenerateEvaluationReportUseCase
+from app.infrastructure.monitoring.metrics import REPORT_GENERATION_ERRORS
 
 logger = logging.getLogger("ms_reports.worker")
 
@@ -36,6 +37,7 @@ CeleryInstrumentor().instrument()
 class ReportTaskBase(Task):
     """Base Task que actualiza los metadatos del job en caso de fallo crítico de Celery."""
     def on_failure(self, exc, task_id, args, kwargs, einfo):
+        REPORT_GENERATION_ERRORS.labels(error_type="celery_worker").inc()
         try:
             job_id = kwargs.get("job_id")
             if not job_id and args and len(args) >= 4:
@@ -49,7 +51,7 @@ class ReportTaskBase(Task):
                 sanitized_error = (tb or str(exc))[-3000:]
                 job_store.set_error(job_id, sanitized_error)
                 
-                db = PostgresISARepository()
+                db = HttpISARepository()
                 db.save_audit_log(job_id=job_id, status="FAILED", error=sanitized_error)
         except Exception:
             pass
@@ -88,7 +90,7 @@ def generate_report_task(
     job_store = JobMetadataStore.from_env()
     
     try:
-        db_repo = PostgresISARepository()
+        db_repo = HttpISARepository()
         llm = OllamaAdapter()
         vector_db = QdrantAdapter(llm_adapter=llm) 
         pdf_gen = WeasyPrintReportGenerator()
@@ -148,7 +150,7 @@ def delete_ephemeral_report(job_id: str, file_name: str):
         logger.error(f"[Trace: {trace_id}] [Job: {job_id}] Error al intentar eliminar el archivo de S3: {str(e)}")
         
     try:
-        db = PostgresISARepository()
+        db = HttpISARepository()
         db.save_audit_log(job_id=job_id, status="DELETED")
         logger.info(f"[Trace: {trace_id}] [Job: {job_id}] Historial en PostgreSQL actualizado a DELETED.")
     except Exception as e:
