@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             const payload = JSON.parse(atob(data.access.split('.')[1]));
 
-            const rol = payload.rol_nombre === 'Administrador' ? 'admin' : 'usuario';
+            const rol = (payload.rol_nombre === 'Administrador' || payload.rol_nombre === 'Coordinador') ? 'admin' : 'usuario';
 
             const userData = {
                 nombre: payload.nombre_completo || payload.username,

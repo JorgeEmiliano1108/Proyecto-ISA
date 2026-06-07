@@ -194,10 +194,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
 
     marcarLinkActivo();
-    initNavBarIcons(isAdmin);
+    await initNavBarIcons(isAdmin);
 });
 
-function initNavBarIcons(isAdmin) {
+async function initNavBarIcons(isAdmin) {
+    if (typeof _cargarNotificaciones === 'function') {
+        await _cargarNotificaciones();
+    }
+
     if (isAdmin) {
         document.getElementById('navbar-notificaciones').innerHTML = `
             <div class="position-relative hover-icon" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="cursor: pointer;" onclick="marcarLeidasNotif()">
@@ -229,19 +233,25 @@ function initNavBarIcons(isAdmin) {
 }
 
 function getNoLeidas() {
-    const data = localStorage.getItem('isa_notificaciones');
-    const notifs = data ? JSON.parse(data) : [];
-    return notifs.filter(n => !n.leido).length;
+    if (typeof NotificacionesService !== 'undefined') {
+        return NotificacionesService.getNoLeidas().length;
+    }
+    return 0;
 }
 
 function marcarLeidasNotif() {
-    const data = localStorage.getItem('isa_notificaciones');
-    if (data) {
-        const notifs = JSON.parse(data);
-        let cambio = false;
-        notifs.forEach(n => { if (!n.leido) { n.leido = true; cambio = true; } });
-        if (cambio) localStorage.setItem('isa_notificaciones', JSON.stringify(notifs));
-    }
+    const notificaciones = typeof NotificacionesService !== 'undefined' ? NotificacionesService.getAll() : [];
+    notificaciones.forEach(n => {
+        if (!n.leido) {
+            n.leido = true;
+            if (typeof apiFetch === 'function') {
+                apiFetch(`/notificaciones/${n.id}/`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ leido: true })
+                }).catch(() => {});
+            }
+        }
+    });
 }
 
 function logout() {

@@ -1,84 +1,95 @@
-/**
- * SERVICIO DE DATOS (Backend Interface)
- */
 const UsuarioDashboardService = {
-    async getDatosPersonales() {
-        // En el futuro: const res = await fetch('/api/perfil'); return res.json();
+    async getMiPerfil() {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
         return {
-            nombre: "Sarah Jenkins",
-            promedio: 4.92,
-            pendientes: 2,
-            vencimiento: "20 de Octubre",
-            bono: "$2,450.00"
+            nombre: userData.nombre_completo || userData.nombre || 'Usuario',
+            promedio: 0,
+            pendientes: 0,
+            vencimiento: '--',
+            bono: 'N/A'
         };
     },
 
     async getMisEvaluaciones() {
-        return [
-            { id: 101, titulo: "Desempeño Trimestral Q3", fecha: "15 Sep, 2023", resultado: 4.8, estado: "Completado", clase: "badge bg-success-subtle text-success" },
-            { id: 102, titulo: "Habilidades Técnicas", fecha: "02 Ago, 2023", resultado: 5.0, estado: "Completado", clase: "badge bg-success-subtle text-success" },
-            { id: 103, titulo: "Cultura Organizacional", fecha: "10 Jul, 2023", resultado: 4.5, estado: "Completado", clase: "badge bg-success-subtle text-success" }
-        ];
-    },
-
-    async getMisTareas() {
-        return [
-            { id: 1, tarea: "Autoevaluación Anual", prioridad: "Alta", fecha: "Hoy", color: "bg-danger" },
-            { id: 2, tarea: "Feedback de Pares", prioridad: "Media", fecha: "Mañana", color: "bg-primary" },
-            { id: 3, tarea: "Revisión de Objetivos Q4", prioridad: "Baja", fecha: "Próxima semana", color: "bg-info" }
-        ];
+        try {
+            const res = await apiFetch('/evaluations/');
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data.results || data;
+        } catch {
+            return [];
+        }
     }
 };
 
-/**
- * CONTROLADOR DE LA VISTA
- */
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        // Llamada paralela al Backend
-        const [perfil, evaluaciones, tareas] = await Promise.all([
-            UsuarioDashboardService.getDatosPersonales(),
-            UsuarioDashboardService.getMisEvaluaciones(),
-            UsuarioDashboardService.getMisTareas()
+        const [perfil, evaluaciones] = await Promise.all([
+            UsuarioDashboardService.getMiPerfil(),
+            UsuarioDashboardService.getMisEvaluaciones()
         ]);
 
-        // Inyectar datos en Tarjetas
+        const pendientes = evaluaciones.filter(
+            e => !['APPROVED', 'CLOSED'].includes(e.estado)
+        ).length;
+
+        const completadas = evaluaciones.filter(
+            e => ['APPROVED', 'CLOSED'].includes(e.estado)
+        );
+
+        const promedio = completadas.length > 0
+            ? completadas.reduce((sum, e) => sum + (Number(e.calificacion_global) || 0), 0) / completadas.length
+            : 0;
+
+        perfil.pendientes = pendientes;
+        perfil.promedio = promedio;
+
         document.getElementById('nombre-usuario').textContent = perfil.nombre;
-        document.getElementById('mi-promedio').textContent = perfil.promedio.toFixed(2);
+        document.getElementById('mi-promedio').textContent = Number(perfil.promedio).toFixed(2);
         document.getElementById('mis-pendientes').textContent = perfil.pendientes;
         document.getElementById('fecha-vencimiento').textContent = perfil.vencimiento;
         document.getElementById('mi-bono').textContent = perfil.bono;
 
-        // Renderizar componentes
+        const mensaje = document.getElementById('mensaje-desempeno');
+        if (completadas.length === 0) {
+            mensaje.textContent = 'Sin evaluaciones registradas aún';
+            mensaje.className = 'text-muted small mb-0';
+        } else {
+            mensaje.textContent = ' ¡Excelente desempeño!';
+            mensaje.className = 'text-success small mb-0';
+        }
+
         renderTabla(evaluaciones);
-        renderTareas(tareas);
 
     } catch (error) {
         console.error("Error al cargar datos del backend:", error);
     }
 });
 
-function renderTabla(datos) {
-    const tbody = document.getElementById('tabla-mis-evaluaciones');
-    tbody.innerHTML = datos.map(ev => `
-        <tr class="align-middle">
-            <td class="fw-bold text-dark-blue">${ev.titulo}</td>
-            <td>${ev.fecha}</td>
-            <td class="fw-bold">${ev.resultado.toFixed(1)}</td>
-            <td><span class="${ev.clase} rounded-pill px-3 py-1 fw-bold" style="font-size:0.7rem">${ev.estado}</span></td>
-        </tr>
-    `).join('');
+function estadoBadge(estado) {
+    const map = {
+        'DRAFT': 'badge bg-secondary',
+        'SUBMITTED': 'badge bg-info text-dark',
+        'PENDING_APPROVAL': 'badge bg-warning text-dark',
+        'APPROVED': 'badge bg-success',
+        'CLOSED': 'badge bg-dark',
+        'REJECTED': 'badge bg-danger'
+    };
+    return map[estado] || 'badge bg-light text-dark';
 }
 
-function renderTareas(tareas) {
-    const lista = document.getElementById('lista-tareas-usuario');
-    lista.innerHTML = tareas.map(t => `
-        <li class="list-group-item d-flex justify-content-between align-items-start border-0 px-0 py-3 border-bottom">
-            <div class="ms-2 me-auto">
-                <div class="fw-bold small text-dark-blue">${t.tarea}</div>
-                <span class="text-muted" style="font-size: 0.7rem;">Prioridad: ${t.prioridad}</span>
-            </div>
-            <span class="badge ${t.color} rounded-pill small">${t.fecha}</span>
-        </li>
+function renderTabla(datos) {
+    const tbody = document.getElementById('tabla-mis-evaluaciones');
+    if (!datos || datos.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted small py-3">Sin evaluaciones registradas</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = datos.map(ev => `
+        <tr class="align-middle">
+            <td class="fw-bold text-dark-blue">${ev.periodo_nombre || 'Evaluación'}</td>
+            <td>${ev.fecha_creacion ? new Date(ev.fecha_creacion).toLocaleDateString('es-MX') : '--'}</td>
+            <td class="fw-bold">${ev.calificacion_global ? Number(ev.calificacion_global).toFixed(1) : '--'}</td>
+            <td><span class="${estadoBadge(ev.estado)} rounded-pill px-3 py-1 fw-bold" style="font-size:0.7rem">${ev.estado}</span></td>
+        </tr>
     `).join('');
 }

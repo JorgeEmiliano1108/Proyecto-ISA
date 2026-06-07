@@ -1,18 +1,44 @@
-// --- SERVICIOS ---
 const UsuariosService = {
-    async getResumen() { return { total: 1284, activos: 412 }; },
     async getUsuarios() {
-        return [
-            { id: 1, nombre: 'Sarah Jenkins', email: 'sarah.j@empresa.com', rol: 'Arquitecta Sr.', dept: 'Estrategia de Producto', estado: 'Activo', ultimoLogin: 'Hace 2 min', claseEstado: 'text-success' },
-            { id: 2, nombre: 'Marcus Rhodes', email: 'm.rhodes@empresa.com', rol: 'Líder de Equipo', dept: 'Ingeniería', estado: 'Activo', ultimoLogin: 'Hace 1 hora', claseEstado: 'text-success' },
-            { id: 3, nombre: 'Elena Lopez', email: 'e.lopez@empresa.com', rol: 'Controladora', dept: 'Operaciones', estado: 'Inactivo', ultimoLogin: 'Ayer', claseEstado: 'text-muted' }
-        ];
+        const res = await apiFetch('/users/');
+        if (!res.ok) return [];
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (data.results || []);
+        return list.map(u => ({
+            id: u.id,
+            nombre: u.nombre_completo || u.username,
+            username: u.username,
+            email: u.username + '@isa.com.mx',
+            rol: u.puesto || '—',
+            dept: u.departamento || '—',
+            estado: u.activo === false ? 'Inactivo' : 'Activo',
+            ultimoLogin: u.fecha_registro ? new Date(u.fecha_registro).toLocaleDateString('es-MX') : '—',
+            claseEstado: u.activo === false ? 'text-muted' : 'text-success'
+        }));
     },
-    async eliminarUsuario(id) { console.log(`Eliminado: ${id}`); return { success: true }; },
-    async guardarUsuario(datos) { console.log("Guardado:", datos); return { success: true }; }
+
+    async eliminarUsuario(id) {
+        const res = await apiFetch(`/users/${id}/`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('No se pudo eliminar');
+        return { success: true };
+    },
+
+    async guardarUsuario(datos) {
+        const method = datos.id ? 'PUT' : 'POST';
+        const url = datos.id ? `/users/${datos.id}/` : '/users/';
+        const res = await apiFetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(Object.values(err).flat().join(', ') || 'Error al guardar');
+        }
+        return { success: true };
+    }
 };
 
-// --- VARIABLES ---
 let modalUsuario;
 let editando = false;
 let usuarioIdActual = null;
@@ -20,11 +46,15 @@ let listaUsuariosLocal = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
     modalUsuario = new bootstrap.Modal(document.getElementById('modalUsuario'));
-    const resumen = await UsuariosService.getResumen();
-    listaUsuariosLocal = await UsuariosService.getUsuarios();
-    
-    renderResumen(resumen);
-    renderTabla(listaUsuariosLocal);
+
+    try {
+        listaUsuariosLocal = await UsuariosService.getUsuarios();
+        renderResumen(listaUsuariosLocal);
+        renderTabla(listaUsuariosLocal);
+    } catch (error) {
+        console.error("Error cargando usuarios:", error);
+    }
+
     setupEventListeners();
 });
 
@@ -34,54 +64,59 @@ function setupEventListeners() {
     const inputBusqueda = document.getElementById('input-busqueda');
     const btnExportar = document.getElementById('btn-exportar');
 
-    // FILTRO EN TIEMPO REAL
     inputBusqueda.addEventListener('input', (e) => {
         const termino = e.target.value.toLowerCase();
-        const filtrados = listaUsuariosLocal.filter(user => 
-            user.nombre.toLowerCase().includes(termino) || 
-            user.email.toLowerCase().includes(termino)
+        const filtrados = listaUsuariosLocal.filter(user =>
+            user.nombre.toLowerCase().includes(termino) ||
+            user.email.toLowerCase().includes(termino) ||
+            user.rol.toLowerCase().includes(termino)
         );
         renderTabla(filtrados);
     });
 
-    // EXPORTAR (Simulado)
-    btnExportar.addEventListener('click', () => alert("Descargando reporte de usuarios..."));
+    btnExportar.addEventListener('click', () => {
+        const csv = listaUsuariosLocal.map(u => `${u.nombre},${u.email},${u.rol},${u.dept},${u.estado}`).join('\n');
+        const blob = new Blob(['Usuario,Email,Rol,Depto,Estado\n' + csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'usuarios.csv';
+        a.click();
+    });
 
     btnCrear.addEventListener('click', () => {
         editando = false;
         formUsuario.reset();
-        document.getElementById('modalUsuarioLabel').textContent = "➕ Nuevo Usuario";
+        document.getElementById('modalUsuarioLabel').textContent = "Nuevo Usuario";
         modalUsuario.show();
     });
 
     formUsuario.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
         const datos = {
-            id: editando ? usuarioIdActual : Date.now(),
-            nombre: document.getElementById('nombre').value,
-            email: document.getElementById('email').value,
-            rol: document.getElementById('rol').value,
-            dept: document.getElementById('dept').value,
-            estado: 'Activo', ultimoLogin: 'Ahora', claseEstado: 'text-success'
+            id: editando ? usuarioIdActual : null,
+            username: document.getElementById('email').value.split('@')[0],
+            nombre_completo: document.getElementById('nombre').value,
+            puesto: document.getElementById('rol').value,
+            password: 'temporal123'
         };
 
-        await UsuariosService.guardarUsuario(datos);
-        if (editando) {
-            const idx = listaUsuariosLocal.findIndex(u => u.id === usuarioIdActual);
-            listaUsuariosLocal[idx] = datos;
-        } else {
-            listaUsuariosLocal.push(datos);
+        try {
+            await UsuariosService.guardarUsuario(datos);
+            listaUsuariosLocal = await UsuariosService.getUsuarios();
+            modalUsuario.hide();
+            renderTabla(listaUsuariosLocal);
+            renderResumen(listaUsuariosLocal);
+        } catch (error) {
+            alert('Error: ' + error.message);
         }
-        
-        modalUsuario.hide();
-        renderTabla(listaUsuariosLocal);
     });
 }
 
 function renderTabla(datos) {
     const contenedor = document.getElementById('tabla-usuarios');
     document.getElementById('mostrando-count').textContent = datos.length;
-    
+
     contenedor.innerHTML = datos.map(user => `
         <tr class="align-middle">
             <td class="fw-bold text-dark-blue">
@@ -97,8 +132,8 @@ function renderTabla(datos) {
             <td class="${user.claseEstado} fw-bold small">• ${user.estado}</td>
             <td class="text-muted small">${user.ultimoLogin}</td>
             <td>
-                <button class="btn btn-sm btn-light border" onclick="editarUsuario(${user.id})">✏️</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="borrarUsuario(${user.id})">🗑️</button>
+                <button class="btn btn-sm btn-light border" onclick="editarUsuario('${user.id}')">✏️</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="borrarUsuario('${user.id}')">🗑️</button>
             </td>
         </tr>
     `).join('');
@@ -113,20 +148,26 @@ function editarUsuario(id) {
         document.getElementById('email').value = user.email;
         document.getElementById('rol').value = user.rol;
         document.getElementById('dept').value = user.dept;
-        document.getElementById('modalUsuarioLabel').textContent = "✏️ Editar Usuario";
+        document.getElementById('modalUsuarioLabel').textContent = "Editar Usuario";
         modalUsuario.show();
     }
 }
 
 async function borrarUsuario(id) {
-    if (confirm("¿Eliminar usuario?")) {
+    if (!confirm("¿Eliminar usuario?")) return;
+    try {
+        await UsuariosService.eliminarUsuario(id);
         listaUsuariosLocal = listaUsuariosLocal.filter(u => u.id !== id);
         renderTabla(listaUsuariosLocal);
+        renderResumen(listaUsuariosLocal);
+    } catch (error) {
+        alert('Error: ' + error.message);
     }
 }
 
 function renderResumen(data) {
-    document.getElementById('kpi-total').textContent = data.total.toLocaleString();
-    document.getElementById('kpi-activos').textContent = data.activos;
-    document.getElementById('total-usuarios-tabla').textContent = data.total.toLocaleString();
+    const total = data.length || 0;
+    document.getElementById('kpi-total').textContent = total;
+    document.getElementById('kpi-activos').textContent = data.filter(u => u.estado === 'Activo').length;
+    document.getElementById('total-usuarios-tabla').textContent = total;
 }

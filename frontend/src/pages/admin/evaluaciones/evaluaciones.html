@@ -127,65 +127,62 @@
     <script src="../../../components/layout/layout.js"></script>
     <script src="../../../components/layout/modal-notificaciones.js"></script>
     <script src="../../../components/layout/modal-perfil.js"></script>
+    <div class="modal fade grilla-modal" id="modalSupervision" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark-blue">Supervisión de Evaluaciones</h5>
+                        <p class="text-muted small mb-0">Visualiza todas las evaluaciones del equipo en tiempo real</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-warning text-dark" id="total-activos-supervision">0 Usuarios</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="grilla-toolbar">
+                        <div class="input-group" style="width: 250px;">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Buscar usuario..." id="buscar-usuario" onkeyup="filtrarUsuarios()">
+                        </div>
+                        <div class="vr"></div>
+                        <select class="form-select form-select-sm" style="width: 150px;" id="filtro-estado" onchange="filtrarUsuarios()">
+                            <option value="">Todos los Estados</option>
+                            <option value="DRAFT">Borrador</option>
+                            <option value="SUBMITTED">En Proceso</option>
+                            <option value="APPROVED">Completado</option>
+                        </select>
+                        <span class="text-muted small">Modo solo lectura</span>
+                    </div>
+                    <div id="grilla-supervision-container" class="grilla-container" style="height: 500px;"></div>
+                    <div class="grilla-stats" id="supervision-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="stat-total">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value text-success" id="stat-completados">0</span>
+                            <span class="stat-label">Completados</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value text-warning" id="stat-pendientes">0</span>
+                            <span class="stat-label">Pendientes</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value text-muted" id="stat-borrador">0</span>
+                            <span class="stat-label">Borrador</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../../../components/grilla-evaluacion/grilla-evaluacion.js"></script>
     <script src="./evaluaciones.js"></script>
 </body>
 </html>
-
-<div class="modal fade grilla-modal" id="modalSupervision" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-lg-down">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div>
-                    <h5 class="modal-title fw-bold text-dark-blue">Supervisión de Evaluaciones</h5>
-                    <p class="text-muted small mb-0">Visualiza todas las evaluaciones dell equipo en tiempo real</p>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-warning text-dark">5 Usuarios Activos</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-            </div>
-            <div class="modal-body p-0">
-                <div class="grilla-toolbar">
-                    <div class="input-group" style="width: 250px;">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" placeholder="Buscar usuario..." id="buscar-usuario" onkeyup="filtrarUsuarios()">
-                    </div>
-                    <div class="vr"></div>
-                    <select class="form-select form-select-sm" style="width: 150px;" id="filtro-estado" onchange="filtrarUsuarios()">
-                        <option value="">Todos los Estados</option>
-                        <option value="Borrador">Borrador</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Completado">Completado</option>
-                    </select>
-                    <span class="text-muted small">Modo solo lectura - No se puede editar</span>
-                </div>
-                <div id="grilla-supervision-container" class="grilla-container" style="height: 500px;"></div>
-                <div class="grilla-stats">
-                    <div class="stat-item">
-                        <span class="stat-value">5</span>
-                        <span class="stat-label">Total Usuarios</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value text-success">2</span>
-                        <span class="stat-label">Completados</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value text-warning">2</span>
-                        <span class="stat-label">En Proceso</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value text-muted">1</span>
-                        <span class="stat-label">Borrador</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary px-4">
-                    <i class="bi bi-download me-1"></i>Exportar Reporte
-                </button>
-            </div>
-        </div>
-    </div>
-</div>

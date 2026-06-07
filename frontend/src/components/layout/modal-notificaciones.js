@@ -1,37 +1,53 @@
+let _notificacionesCache = [];
+
+async function _cargarNotificaciones() {
+    try {
+        const res = await apiFetch('/notificaciones/');
+        if (res.ok) {
+            const data = await res.json();
+            _notificacionesCache = Array.isArray(data) ? data : (data.results || []);
+        }
+    } catch {}
+}
+
 const NotificacionesService = {
     getAll() {
-        const data = localStorage.getItem('isa_notificaciones');
-        return data ? JSON.parse(data) : [];
+        return _notificacionesCache;
     },
 
-    save(notificaciones) {
-        localStorage.setItem('isa_notificaciones', JSON.stringify(notificaciones));
-    },
-
-    create(notificacion) {
-        const notificaciones = this.getAll();
-        notificacion.id = Date.now();
-        notificacion.fecha = new Date().toISOString().split('T')[0];
-        notificaciones.unshift(notificacion);
-        this.save(notificaciones);
+    async create(notificacion) {
+        try {
+            const res = await apiFetch('/notificaciones/', {
+                method: 'POST',
+                body: JSON.stringify(notificacion)
+            });
+            if (res.ok) await _cargarNotificaciones();
+            return res.ok;
+        } catch {
+            return false;
+        }
     },
 
     marcarLeido(id) {
-        const notificaciones = this.getAll();
-        const idx = notificaciones.findIndex(n => n.id === id);
+        const idx = _notificacionesCache.findIndex(n => n.id === id);
         if (idx !== -1) {
-            notificaciones[idx].leido = true;
-            this.save(notificaciones);
+            _notificacionesCache[idx].leido = true;
+            apiFetch(`/notificaciones/${id}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ leido: true })
+            }).catch(() => {});
         }
     },
 
     getNoLeidas() {
-        return this.getAll().filter(n => !n.leido);
+        return _notificacionesCache.filter(n => !n.leido);
     },
 
-    delete(id) {
-        const notificaciones = this.getAll().filter(n => n.id !== id);
-        this.save(notificaciones);
+    async delete(id) {
+        try {
+            const res = await apiFetch(`/notificaciones/${id}/`, { method: 'DELETE' });
+            if (res.ok) await _cargarNotificaciones();
+        } catch {}
     }
 };
 
@@ -89,16 +105,15 @@ function renderBotonAdminNotificaciones() {
 
 function marcarTodasLeidas() {
     const notificaciones = NotificacionesService.getAll();
-    let cambios = false;
     notificaciones.forEach(n => {
         if (!n.leido) {
             n.leido = true;
-            cambios = true;
+            apiFetch(`/notificaciones/${n.id}/`, {
+                method: 'PATCH',
+                body: JSON.stringify({ leido: true })
+            }).catch(() => {});
         }
     });
-    if (cambios) {
-        NotificacionesService.save(notificaciones);
-    }
 }
 
 function verDetalleNotificacion(id) {
@@ -111,7 +126,7 @@ function verDetalleNotificacion(id) {
         modalEl.querySelector('#detalle-notificacion-titulo').textContent = n.titulo;
         modalEl.querySelector('#detalle-notificacion-mensaje').textContent = n.mensaje;
         modalEl.querySelector('#detalle-notificacion-tipo').textContent = n.tipo === 'tarea' ? 'Tarea' : 'Comunicado';
-        modalEl.querySelector('#detalle-notificacion-fecha').textContent = n.fechaLimite ? 'Fecha límite: ' + n.fechaLimite : 'Fecha: ' + n.fecha;
+        modalEl.querySelector('#detalle-notificacion-fecha').textContent = n.fecha_limite ? 'Fecha límite: ' + n.fecha_limite : 'Fecha: ' + (n.fecha_creacion ? new Date(n.fecha_creacion).toLocaleDateString() : '');
         modal.show();
     }
 }
@@ -121,7 +136,12 @@ function verTodasNotificaciones() {
     if (dropdown) {
         dropdown.classList.remove('show');
     }
-    window.location.href = '../notificaciones/notificaciones.html';
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    if (userData.rol === 'admin') {
+        window.location.href = '../consultas/consultas.html';
+    } else {
+        window.location.href = '../dashboard/dashboard.html';
+    }
 }
 
 function abrirModalCrearNotificacion() {
@@ -129,7 +149,7 @@ function abrirModalCrearNotificacion() {
     modal.show();
 }
 
-function crearNotificacion() {
+async function crearNotificacion() {
     const titulo = document.getElementById('notif-titulo').value;
     const mensaje = document.getElementById('notif-mensaje').value;
     const tipo = document.getElementById('notif-tipo').value;
@@ -141,14 +161,19 @@ function crearNotificacion() {
         return;
     }
 
-    NotificacionesService.create({
+    const ok = await NotificacionesService.create({
         titulo,
         mensaje,
         tipo,
-        fechaLimite: fechaLimite || null,
+        fecha_limite: fechaLimite || null,
         para,
         leido: false
     });
+
+    if (!ok) {
+        alert('Error al enviar notificación');
+        return;
+    }
 
     bootstrap.Modal.getInstance(document.getElementById('modalCrearNotificacion')).hide();
     document.getElementById('form-crear-notificacion').reset();

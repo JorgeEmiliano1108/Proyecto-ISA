@@ -593,38 +593,56 @@ class GrillaSupervisor {
         this.containerId = containerId;
         this.hot = null;
         this.options = options;
-        this.init();
+        if (options.data) {
+            this.initWithData(options.data);
+        } else {
+            this.init();
+        }
     }
 
     init() {
         const container = document.getElementById(this.containerId);
         if (!container) return;
+        this.renderHot(this.generarDatosSupervision());
+    }
 
-        const data = this.generarDatosSupervision();
+    initWithData(data) {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+        this.renderHot(this.mapearDatosAPI(data));
+    }
+
+    mapearDatosAPI(evaluaciones) {
+        return evaluaciones.map((ev, idx) => [
+            idx + 1,
+            ev.evaluado_nombre || ev.evaluado || '—',
+            ev.estado || '—',
+            ev.calificacion_global ? Number(ev.calificacion_global).toFixed(2) : '—',
+            ev.fecha_actualizacion || ev.fecha_creacion || '—',
+            ev.periodo_nombre || '—',
+            ev.evaluador_nombre || '—'
+        ]);
+    }
+
+    renderHot(data) {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
 
         this.hot = new Handsontable(container, {
             data: data,
             rowHeaders: true,
             colHeaders: [
-                '#', 'Usuario', 'Estado',
-                'Liderazgo', 'Comunicación', 'Proactividad',
-                'Colaboración', 'Adaptabilidad', 'Orient. Resultados',
-                'Promedio', 'Evaluación Global', 'Última Modificación', 'Acciones'
+                '#', 'Evaluado', 'Estado',
+                'Calificación', 'Última Modificación', 'Período', 'Evaluador'
             ],
             columns: [
                 { data: 0, type: 'numeric', readOnly: true, width: 40 },
                 { data: 1, type: 'text', readOnly: true },
                 { data: 2, type: 'text', readOnly: true, renderer: this.estadoRenderer },
-                { data: 3, type: 'numeric', readOnly: true },
-                { data: 4, type: 'numeric', readOnly: true },
-                { data: 5, type: 'numeric', readOnly: true },
-                { data: 6, type: 'numeric', readOnly: true },
-                { data: 7, type: 'numeric', readOnly: true },
-                { data: 8, type: 'numeric', readOnly: true },
-                { data: 9, type: 'numeric', readOnly: true },
-                { data: 10, type: 'numeric', readOnly: true },
-                { data: 11, type: 'text', readOnly: true },
-                { data: 12, type: 'text', renderer: this.accionesRenderer }
+                { data: 3, type: 'text', readOnly: true },
+                { data: 4, type: 'text', readOnly: true },
+                { data: 5, type: 'text', readOnly: true },
+                { data: 6, type: 'text', readOnly: true }
             ],
             licenseKey: 'non-commercial-and-evaluation',
             readOnly: true,
@@ -637,22 +655,18 @@ class GrillaSupervisor {
     }
 
     generarDatosSupervision() {
-        return [
-            [1, 'Juan Pérez', 'En Proceso', 4, 5, 3, 4, 5, 4, 4.17, 3.34, '2025-01-15 10:30', '<button class="btn btn-sm btn-primary">Ver</button>'],
-            [2, 'María García', 'Completado', 5, 4, 5, 4, 4, 5, 4.50, 3.60, '2025-01-14 16:45', '<button class="btn btn-sm btn-success">Ver</button>'],
-            [3, 'Carlos López', 'Borrador', 3, 4, 4, 5, 3, 4, 3.83, 3.06, '2025-01-10 09:15', '<button class="btn btn-sm btn-warning">Ver</button>'],
-            [4, 'Ana Martínez', 'En Proceso', 4, 5, 5, 4, 5, 5, 4.67, 3.74, '2025-01-15 11:20', '<button class="btn btn-sm btn-primary">Ver</button>'],
-            [5, 'Pedro Sánchez', 'Borrador', 4, 3, 4, 4, 4, 3, 3.67, 2.94, '2025-01-12 14:00', '<button class="btn btn-sm btn-warning">Ver</button>']
-        ];
+        return [];
     }
 
     estadoRenderer(hotInstance, td, row, col, prop, value, cellProperties) {
         td.textContent = value || '';
         const colores = {
-            'Borrador': '#6c757d',
-            'En Proceso': '#ffc107',
-            'Completado': '#198754',
-            'Aprobado': '#0d6efd'
+            'DRAFT': '#6c757d',
+            'SUBMITTED': '#ffc107',
+            'PENDING_APPROVAL': '#fd7e14',
+            'APPROVED': '#198754',
+            'CLOSED': '#0d6efd',
+            'REJECTED': '#dc3545'
         };
         td.className = 'badge';
         td.style.backgroundColor = colores[value] || '#6c757d';
@@ -661,9 +675,11 @@ class GrillaSupervisor {
         return td;
     }
 
-    accionesRenderer(hotInstance, td, row, col, prop, value, cellProperties) {
-        td.innerHTML = value || '';
-        return td;
+    updateData(data) {
+        if (this.hot) {
+            this.hot.destroy();
+        }
+        this.initWithData(data);
     }
 
     destroy() {
