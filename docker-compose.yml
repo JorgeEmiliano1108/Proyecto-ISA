@@ -453,6 +453,89 @@ services:
       - reports
       - all
 
+# ============================================================================
+  # BONUS SERVICE
+  # ============================================================================
+  bonus_api:
+    build:
+      context: ../bonus_service
+      dockerfile: Dockerfile
+      target: production
+    container_name: bonus_api
+    ports:
+      - "8004:8002"
+    env_file: ../bonus_service/.env
+    environment:
+      - REDIS_URL=redis://bonus_redis:6379/0
+      - BACKEND_API_URL=http://backend:8000
+    secrets:
+      - bonus_db_password
+      - bonus_secret_key
+      - bonus_encryption_key
+      - bonus_jwt_public_key
+    depends_on:
+      bonus_redis:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/bonus/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - bonus
+      - all
+
+  bonus_celery_worker:
+    build:
+      context: ../bonus_service
+      dockerfile: Dockerfile
+      target: production
+    container_name: bonus_celery_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    env_file: ../bonus_service/.env
+    environment:
+      - REDIS_URL=redis://bonus_redis:6379/0
+    secrets:
+      - bonus_db_password
+      - bonus_secret_key
+      - bonus_encryption_key
+      - bonus_jwt_public_key
+    depends_on:
+      - bonus_redis
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    profiles:
+      - bonus
+      - all
+
+  bonus_redis:
+    image: redis:7-alpine
+    container_name: bonus_redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - bonus
+      - all
+
 # ==============================================================================
 # VOLUMES
 # ==============================================================================
@@ -466,3 +549,15 @@ volumes:
   minio_data:
   reports_static:
   prometheus_data:
+# ==============================================================================
+# SECRETS
+# ==============================================================================
+secrets:
+  bonus_db_password:
+    file: ../bonus_service/secrets/db_password
+  bonus_secret_key:
+    file: ../bonus_service/secrets/secret_key
+  bonus_encryption_key:
+    file: ../bonus_service/secrets/encryption_key
+  bonus_jwt_public_key:
+    file: ../bonus_service/secrets/jwt_public_key
