@@ -9,36 +9,36 @@ from .serializers import (
 )
 
 
-class CatRolesViewSet(viewsets.ReadOnlyModelViewSet):
+class CatRolesViewSet(viewsets.ModelViewSet):
     """
-    Read-only para roles.
+    CRUD para roles.
     """
     queryset = CatRoles.objects.filter(activo=True)
     serializer_class = CatRolesSerializer
     permission_classes = [IsAuthenticated]
 
 
-class CatDepartamentosViewSet(viewsets.ReadOnlyModelViewSet):
+class CatDepartamentosViewSet(viewsets.ModelViewSet):
     """
-    Read-only para departamentos.
+    CRUD para departamentos.
     """
     queryset = CatDepartamentos.objects.filter(activo=True)
     serializer_class = CatDepartamentosSerializer
     permission_classes = [IsAuthenticated]
 
 
-class CatPeriodosViewSet(viewsets.ReadOnlyModelViewSet):
+class CatPeriodosViewSet(viewsets.ModelViewSet):
     """
-    Read-only para periodos.
+    CRUD para periodos.
     """
     queryset = CatPeriodos.objects.filter(activo=True)
     serializer_class = CatPeriodosSerializer
     permission_classes = [IsAuthenticated]
 
 
-class CatCompetenciasViewSet(viewsets.ReadOnlyModelViewSet):
+class CatCompetenciasViewSet(viewsets.ModelViewSet):
     """
-    Read-only para competencias.
+    CRUD para competencias.
     """
     queryset = CatCompetencias.objects.filter(activo=True)
     serializer_class = CatCompetenciasSerializer

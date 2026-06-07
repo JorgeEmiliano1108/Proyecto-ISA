@@ -5,6 +5,7 @@ Cumple con OWASP SbD - Secure-by-Design:
 - Serializers anidados para relaciones
 - Trazabilidad integrada
 """
+from django.utils import timezone
 from rest_framework import serializers
 from apps.evaluations.models import Evaluaciones, CompetenciasDetalle, Objetivos
 from apps.audit.models import HistorialEstados
@@ -90,7 +91,7 @@ class EvaluacionSerializer(serializers.ModelSerializer):
     periodo_nombre = serializers.CharField(source='periodo.nombre', read_only=True)
     
     # Serializers anidados
-    competencias = CompetenciaDetalleSerializer(source='competencias_detalle_set', many=True, read_only=True)
+    competencias = CompetenciaDetalleSerializer(source='competenciasdetalle_set', many=True, read_only=True)
     objetivos = ObjetivoSerializer(many=True, read_only=True)
     historial = HistorialEstadoSerializer(many=True, read_only=True)
     
@@ -156,14 +157,8 @@ class EvaluacionCreateSerializer(serializers.ModelSerializer):
 
 
 class EvaluacionUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer de ESCRITURA para actualizar Evaluaciones.
-    
-    CRITICAL SECURITY:
-    - El campo 'estado' es read_only=True
-    - Solo permite actualizar campos de contenido
-    - Los cambios de estado van por EvaluationService
-    """
+    competencias = serializers.ListField(child=serializers.DictField(), required=False, write_only=True)
+
     class Meta:
         model = Evaluaciones
         fields = [
@@ -171,7 +166,36 @@ class EvaluacionUpdateSerializer(serializers.ModelSerializer):
             'comentarios_evaluador',
             'comentarios_evaluado',
             'calificacion_global',
+            'competencias',
         ]
+
+    def update(self, instance, validated_data):
+        competencias_data = validated_data.pop('competencias', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.fecha_actualizacion = timezone.now()
+        instance.save()
+
+        if competencias_data:
+            from apps.evaluations.models import CompetenciasDetalle
+            existing = {cd.competencia_id: cd for cd in CompetenciasDetalle.objects.filter(evaluacion=instance)}
+            for item in competencias_data:
+                comp_id = item.get('competencia')
+                calif = item.get('calificacion')
+                if comp_id and calif is not None:
+                    if comp_id in existing:
+                        cd = existing[comp_id]
+                        cd.calificacion = calif
+                        cd.save()
+                    else:
+                        CompetenciasDetalle.objects.create(
+                            evaluacion=instance,
+                            competencia_id=comp_id,
+                            calificacion=calif,
+                            comentario=''
+                        )
+
+        return instance
 
 
 # ============================================

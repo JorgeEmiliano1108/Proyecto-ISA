@@ -5,6 +5,7 @@ Cumple con OWASP SbD - Defense in Depth:
 - Usa permisos a nivel de objeto (permissions.py)
 - Optimiza consultas con select_related y prefetch_related
 """
+from django.db import models
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -50,9 +51,11 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Optimiza consultas para evitar problema N+1.
-        Usa select_related y prefetch_related.
+        Filtra por permisos: admin/contraloria ve todo,
+        los demás solo ven evaluaciones donde son evaluado,
+        evaluador, o manager de evaluado/evaluador.
         """
-        return Evaluaciones.objects.select_related(
+        qs = Evaluaciones.objects.select_related(
             'evaluado',
             'evaluado__rol',
             'evaluado__departamento',
@@ -60,12 +63,26 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
             'evaluador__rol',
             'periodo'
         ).prefetch_related(
-            'competencias_detalle_set',
-            'competencias_detalle_set__competencia',
+            'competenciasdetalle_set',
+            'competenciasdetalle_set__competencia',
             'objetivos_set',
-            'historialestado_set',
-            'historialestado_set__usuario'
+            'historialestados_set',
+            'historialestados_set__usuario'
         )
+
+        user = self.request.user
+        user_rol = getattr(user, 'rol', None)
+        rol_nombre = getattr(user_rol, 'nombre', '').lower() if user_rol else ''
+
+        if rol_nombre in ['administrador', 'contraloria']:
+            return qs
+
+        return qs.filter(
+            models.Q(evaluado=user) |
+            models.Q(evaluador=user) |
+            models.Q(evaluado__manager=user) |
+            models.Q(evaluador__manager=user)
+        ).order_by('-fecha_creacion')
     
     # ============================================
     # ACCIONES DE TRANSICIÓN (State Machine)
@@ -158,6 +175,15 @@ class EvaluacionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
+    def destroy(self, request, *args, **kwargs):
+        evaluacion = self.get_object()
+        if evaluacion.estado != 'DRAFT':
+            return Response(
+                {'error': 'Solo se pueden eliminar evaluaciones en estado DRAFT.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def transitions(self, request):
         """

@@ -1,7 +1,8 @@
+import uuid
 from django.db import models
 # 5 historial estados
 class HistorialEstados(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     evaluacion = models.ForeignKey('evaluations.Evaluaciones', models.DO_NOTHING)
     estado_anterior = models.CharField(max_length=50)
     estado_nuevo = models.CharField(max_length=50)
@@ -14,7 +15,7 @@ class HistorialEstados(models.Model):
 
 # 6 aprobaciones
 class Aprobaciones(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     evaluacion = models.ForeignKey('evaluations.Evaluaciones', models.DO_NOTHING)
     rol = models.ForeignKey('catalogs.CatRoles', models.DO_NOTHING)
     usuario = models.ForeignKey('users.Usuarios', models.DO_NOTHING)
@@ -26,7 +27,7 @@ class Aprobaciones(models.Model):
         db_table = 'aprobaciones'
 # 7 logs sistema
 class LogsSistema(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     usuario = models.ForeignKey('users.Usuarios', models.DO_NOTHING, blank=True, null=True)
     accion = models.CharField(max_length=50)
     ip_address = models.CharField(max_length=45)

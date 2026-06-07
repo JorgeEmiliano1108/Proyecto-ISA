@@ -10,9 +10,9 @@ class ISAClient:
     """Cliente HTTP para consumir la API de ISA (Active Directory + SIARE)."""
 
     def __init__(self):
-        self.base_url = getattr(settings, 'ISA_API_URL', 'http://localhost:5170')
-        self.client_id = getattr(settings, 'ISA_CLIENT_ID', 'validaciones-public-api')
-        self.client_secret = getattr(settings, 'ISA_CLIENT_SECRET', 'Validaciones.Public.Api.Secret.2026')
+        self.base_url = settings.ISA_API_URL
+        self.client_id = settings.ISA_CLIENT_ID
+        self.client_secret = settings.ISA_CLIENT_SECRET
         self._token = None
         self._token_expires_at = 0
         self.timeout = 10

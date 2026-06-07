@@ -28,23 +28,12 @@ env = environ.Env(
 # 4. LEER EL ARCHIVO .env
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# Extraer configuraciones de seguridad
-"""
-SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG')
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-"""
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-57-26-a-g==ub08@6koz(u5g6l)bbs7%kb%&fphy%7k8$4w9i9'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'backend_django'])
 
 
 # Application definition
@@ -63,6 +52,7 @@ INSTALLED_APPS = [
     'apps.evaluations',
     'apps.finances',
     'apps.audit',
+    'apps.consultas',
 ]
 
 MIDDLEWARE = [
@@ -167,13 +157,19 @@ REST_FRAMEWORK = {
 # ============================================
 from datetime import timedelta
 
+def _load_pem(key: str | None) -> str | None:
+    if not key:
+        return None
+    return key.replace('\\n', '\n')
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': os.environ.get('JWT_SECRET_KEY', 'jwt-super-secret-key-change-in-production'),
+    'ALGORITHM': 'RS256',
+    'SIGNING_KEY': _load_pem(env('JWT_PRIVATE_KEY', default=None)),
+    'VERIFYING_KEY': _load_pem(env('JWT_PUBLIC_KEY', default=None)),
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
@@ -181,6 +177,8 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
 
+
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
 # ============================================
 # CORS HEADERS
@@ -192,6 +190,6 @@ CORS_ALLOW_CREDENTIALS = True
 # ============================================
 # ISA EXTERNAL API (Active Directory + SIARE)
 # ============================================
-ISA_API_URL = env('ISA_API_URL', default='http://localhost:5170')
-ISA_CLIENT_ID = env('ISA_CLIENT_ID', default='validaciones-public-api')
-ISA_CLIENT_SECRET = env('ISA_CLIENT_SECRET', default='Validaciones.Public.Api.Secret.2026')
+ISA_API_URL = env('ISA_API_URL')
+ISA_CLIENT_ID = env('ISA_CLIENT_ID')
+ISA_CLIENT_SECRET = env('ISA_CLIENT_SECRET')

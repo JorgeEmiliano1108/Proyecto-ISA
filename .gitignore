@@ -23,7 +23,6 @@ db.sqlite3-journal
 .env
 .env.local
 .env.*.local
-.env.example
 
 # IDE
 .vscode/
@@ -57,3 +56,7 @@ docs/
 
 # carpeta api de ISA
 api_ISA/
+
+# Secrets / Keys
+secrets/
+keys/private*

@@ -8,6 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 from apps.evaluations.models import Evaluaciones, CompetenciasDetalle, Objetivos
 from apps.audit.models import HistorialEstados
+from apps.evaluations.event_publisher import publish_event
 
 
 class EvaluationService:
@@ -83,6 +84,8 @@ class EvaluationService:
             usuario=usuario,
             comentario='Evaluación enviada por el empleado'
         )
+
+        publish_event('EVALUATION_SUBMITTED', evaluacion.id, estado_anterior, EvaluationService.ESTADO_SUBMITTED, usuario.id)
         
         return evaluacion
     
@@ -127,6 +130,8 @@ class EvaluationService:
                 comentario=comentario or 'Aprobación nivel 1'
             )
 
+            publish_event('EVALUATION_APPROVED_N1', evaluacion.id, estado_anterior, EvaluationService.ESTADO_PENDING_APPROVAL, usuario.id, comentario)
+
         elif evaluacion.estado == EvaluationService.ESTADO_PENDING_APPROVAL:
             if not is_full_access:
                 manager = getattr(evaluacion.evaluador, 'manager', None)
@@ -147,6 +152,8 @@ class EvaluationService:
                 usuario=usuario,
                 comentario=comentario or 'Aprobación nivel 2'
             )
+
+            publish_event('EVALUATION_APPROVED_N2', evaluacion.id, estado_anterior, EvaluationService.ESTADO_APPROVED, usuario.id, comentario)
 
         else:
             raise ValueError(
@@ -207,6 +214,8 @@ class EvaluationService:
             usuario=usuario,
             comentario=f"RECHAZADA: {comentario}"
         )
+
+        publish_event('EVALUATION_REJECTED', evaluacion.id, estado_anterior, EvaluationService.ESTADO_DRAFT, usuario.id, comentario)
 
         return evaluacion
     
