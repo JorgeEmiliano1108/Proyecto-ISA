@@ -7,7 +7,7 @@ services:
     ports:
       - "8001:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@approval_db:5432/approval_db
+      - DATABASE_URL=postgresql+asyncpg://${APPWO_DB_USER:-postgres}:${APPWO_DB_PASSWORD:-postgres}@approval_db:5432/${APPWO_DB_NAME:-approval_db}
       - REDIS_URL=redis://approval_redis:6379/0
       # Simulamos la URL del backend principal de Django
       - USER_SERVICE_URL=http://backend_django:8000
@@ -24,9 +24,9 @@ services:
     image: postgres:16-alpine
     container_name: approval_db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=approval_db
+      - POSTGRES_USER=${APPWO_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${APPWO_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${APPWO_DB_NAME:-approval_db}
     ports:
       - "5433:5432" # Puerto diferente para no chocar con la BD de auditoría
     volumes:
@@ -43,7 +43,7 @@ services:
     container_name: approval_worker
     command: celery -A app.workers.celery_app worker --loglevel=info
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@approval_db:5432/approval_db
+      - DATABASE_URL=postgresql+asyncpg://${APPWO_DB_USER:-postgres}:${APPWO_DB_PASSWORD:-postgres}@approval_db:5432/${APPWO_DB_NAME:-approval_db}
       - REDIS_URL=redis://approval_redis:6379/0
     depends_on:
       - approval_db

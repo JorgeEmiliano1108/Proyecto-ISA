@@ -1,24 +1,39 @@
 # app/core/security.py
 import re
+import jwt
 from typing import Optional
 from fastapi import HTTPException, status
 
+from app.core.config import settings
+
+def _load_pem(value: str) -> str:
+    """Convierte \\n literales a saltos de línea reales en una clave PEM."""
+    return value.replace("\\n", "\n")
+
 def verify_and_decode_jwt(token: str) -> str:
     """
-    Valida el token JWT y extrae el actor_id.
-    En producción, aquí integrarías la librería `PyJWT` usando la llave pública de ISA.
+    Valida el token JWT (RS256) contra la llave pública de ISA y extrae el actor_id.
     """
     if not token or token.lower() in ["invalid", "null", "bearer"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token de acceso inválido, expirado o malformado."
         )
-    
-    # Mock para desarrollo: Extraemos el ID del usuario del token simulado
-    # Ejemplo real: payload = jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
-    # return payload["sub"]
-    
-    return "uuid-del-gerente-o-director"
+
+    public_key = _load_pem(settings.JWT_PUBLIC_KEY)
+    try:
+        payload = jwt.decode(token, public_key, algorithms=["RS256"])
+        return payload.get("user_id")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="El token ha expirado. Inicie sesión nuevamente."
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido o firma no reconocida."
+        )
 
 def sanitize_canvas_signature(signature_b64: str) -> str:
     """
