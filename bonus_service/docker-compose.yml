@@ -6,7 +6,7 @@ services:
       target: production
     container_name: bonus_api
     ports:
-      - "8004:8002"
+      - "8004:8004"
     env_file: .env
     secrets:
       - db_password
@@ -25,7 +25,7 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/api/v1/bonus/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8004/api/v1/bonus/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -24,7 +24,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache/pip
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8004", "--reload"]
 
 # ── Stage 3: Production / Runtime (Ultra Ligero y Seguro) ────────────────────
 FROM python:3.12-slim AS production
@@ -45,6 +45,6 @@ USER appuser
 
 COPY --chown=appuser:appuser ./app ./app
 
-EXPOSE 8002
+EXPOSE 8004
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8004"]
