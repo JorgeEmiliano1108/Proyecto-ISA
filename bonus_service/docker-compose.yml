@@ -5,8 +5,11 @@ services:
       dockerfile: Dockerfile
       target: production
     container_name: bonus_api
+    # OBJETIVO: Puerto 8004 en tu Mac, apuntando al puerto 8000 estándar de producción dentro del contenedor
     ports:
-      - "8004:8004"
+      - "8004:8000"
+    # Forzamos a Uvicorn a levantar la aplicación en el puerto 8000 interno
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     env_file: .env
     secrets:
       - db_password
@@ -25,7 +28,8 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/api/v1/bonus/health"]
+      # Corrección: El script interno de Python ahora consulta el puerto 8000 que es donde realmente vive la app adentro
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/bonus/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -45,7 +49,8 @@ services:
       - encryption_key
       - jwt_public_key
     depends_on:
-      - bonus_redis
+      bonus_redis:
+        condition: service_healthy
     networks:
       - isa_network
     restart: unless-stopped
@@ -63,7 +68,7 @@ services:
       - isa_network
     restart: unless-stopped
     read_only: true
-    tmpfs:
+    volumes:
       - /data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
