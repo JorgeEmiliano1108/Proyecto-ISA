@@ -1,0 +1,72 @@
+# ============================================================================
+# BONUS SERVICE (Corregido y Alineado con Django)
+# ============================================================================
+  bonus_api:
+    build:
+      context: ./bonus_service
+      dockerfile: Dockerfile
+    container_name: bonus_api
+    # SOLUCIÓN PUERTOS: Tu Mac entra por el 8004, Docker te redirige al 8002 real interno
+    ports:
+      - "8004:8002"
+    env_file: ./bonus_service/.env
+    environment:
+      - REDIS_URL=redis://bonus_redis:6379/0
+      - BACKEND_API_URL=http://backend_django:8000  # <-- Apunta directo al contenedor de Django
+    secrets:
+      - bonus_db_password
+      - bonus_secret_key
+      - bonus_encryption_key
+      - bonus_jwt_public_key
+    depends_on:
+      bonus_redis:
+        condition: service_healthy
+    # Se remueve "networks" manual para que herede la red default donde vive Django
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      # Corregido para validar el puerto real 8002 de adentro
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/api/v1/bonus/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - bonus
+      - all
+
+  bonus_celery_worker:
+    build:
+      context: ./bonus_service
+      dockerfile: Dockerfile
+    container_name: bonus_celery_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    env_file: ./bonus_service/.env
+    environment:
+      - REDIS_URL=redis://bonus_redis:6379/0
+    secrets:
+      - bonus_db_password
+      - bonus_secret_key
+      - bonus_encryption_key
+      - bonus_jwt_public_key
+    depends_on:
+      bonus_redis:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    profiles:
+      - bonus
+      - all
+
+  bonus_redis:
+    image: redis:7-alpine
+    container_name: bonus_redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lrum
