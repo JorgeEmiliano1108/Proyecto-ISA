@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ISA Corporativo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../../../css/styles.css">
+    <link rel="stylesheet" href="../../../components/layout/layout.css">
+    <link rel="stylesheet" href="./dashboard.css">
+</head>
+<body>
+
+    <div id="layout-container"></div>
+
+    <main class="page-content">
+        <div class="container-fluid">
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card card-stat p-3 text-center border-0 shadow-sm">
+                        <div class="icon-circle mx-auto mb-2" style="background: #e7f1ff; color: #0d6efd;">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <p class="text-muted mb-0">Total Usuarios</p>
+                        <h2 class="fw-bold mb-0" id="stat-usuarios">...</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stat p-3 text-center border-0 shadow-sm">
+                        <div class="icon-circle mx-auto mb-2" style="background: #e6f9ed; color: #198754;">
+                            <i class="bi bi-ui-checks"></i>
+                        </div>
+                        <p class="text-muted mb-0">Evaluaciones</p>
+                        <h2 class="fw-bold mb-0" id="stat-evaluaciones">...</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stat p-3 text-center border-0 shadow-sm">
+                        <div class="icon-circle mx-auto mb-2" style="background: #fff8e6; color: #ffc107;">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <p class="text-muted mb-0">Pendientes</p>
+                        <h2 class="fw-bold mb-0" id="stat-pendientes">...</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card card-stat p-3 text-center border-0 shadow-sm">
+                        <div class="icon-circle mx-auto mb-2" style="background: #e7faff; color: #0dcaf0;">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <p class="text-muted mb-0">Bonos</p>
+                        <h2 class="fw-bold mb-0" id="stat-bonos">...</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-graph-up text-primary me-2"></i> Actividad Reciente
+                        </h5>
+                        <ul class="list-group list-group-flush" id="lista-actividad">
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-calendar-event text-primary me-2"></i> Próximas Tareas
+                        </h5>
+                        <div id="lista-tareas">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../../components/layout/modal-perfil.js"></script>
+    <script src="../../../components/layout/modal-notificaciones.js"></script>
+    <script src="../../../components/layout/layout.js"></script>
+    <script src="./dashboard.js"></script>
+</body>
+</html>

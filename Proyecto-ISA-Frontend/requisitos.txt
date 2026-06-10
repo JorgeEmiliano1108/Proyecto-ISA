@@ -1,0 +1,22 @@
+# Requisitos Funcionales y No Funcionales - Sistema ISA Frontend
+
+## Requisitos Funcionales (RF)
+
+* **RF-001: Gestión de Autenticación.** El sistema debe proveer una interfaz de inicio de sesión que valide credenciales mediante una API REST, almacene el token JWT de forma segura en el cliente y gestione el ciclo de sesión (redirección al Dashboard tras el éxito y eliminación del token al cerrar sesión).
+* **RF-002: Dashboard Analítico.** El sistema debe desplegar un panel de control inicial que visualice métricas clave consolidadas (usuarios, evaluaciones, bonos), un registro de actividad reciente con marcas de tiempo, y un gestor de tareas programadas priorizado mediante indicadores visuales.
+* **RF-003: Administración de Evaluaciones.** El sistema debe permitir consultar, registrar y editar evaluaciones de desempeño mediante una tabla de datos interactiva. La creación de registros se realizará mediante formularios modales capturando: usuario, fecha, estado y calificación.
+* **RF-004: Flujos de Aprobación.** El sistema debe presentar un listado unificado de solicitudes pendientes (bonos, vacaciones) e incorporar controles de acción rápida para aprobar o rechazar dichas solicitudes, reflejando el cambio de estado inmediatamente en la interfaz.
+* **RF-005: Gestión de Compensaciones (Bonos).** El sistema debe administrar el historial de bonos otorgados. Debe incluir un modal de captura que permita asignar bonificaciones a empleados específicos, clasificándolas por tipo (Productividad, Navidad, etc.), monto y fecha de aplicación.
+* **RF-006: Generación de Reportes.** El sistema debe proveer una interfaz gráfica mediante tarjetas categorizadas para visualizar informes específicos (Usuarios, Evaluaciones, Bonos). Debe incluir una funcionalidad global que permita la exportación de los datos visualizados a formato PDF.
+* **RF-007: Control de Usuarios.** El sistema debe incorporar un módulo (CRUD) para la administración del personal, permitiendo registrar nuevos colaboradores, asignar perfiles de acceso (Administrador/Usuario) y gestionar su estado operativo (Activo/Inactivo).
+
+---
+
+## Requisitos No Funcionales (RNF)
+
+* **RNF-001: Arquitectura Cliente-Servidor (MPA).** La capa de presentación debe operar de forma completamente desacoplada del backend. Utilizará una arquitectura Multi-Page Application (archivos físicos HTML) consumiendo datos exclusivamente mediante peticiones asíncronas (`fetch`) a una API RESTful.
+* **RNF-002: Patrón de Diseño y Estructura.** El código JavaScript debe organizarse bajo el patrón MVC (Modelo-Vista-Controlador) nativo (Vanilla JS). Se debe garantizar la separación estricta entre las peticiones a la API (Models), la manipulación del DOM (Views) y la orquestación de eventos (Controllers).
+* **RNF-003: Autenticación Stateless (JWT).** La seguridad del sistema se basará en JSON Web Tokens. El frontend debe implementar un *middleware* local que valide la existencia del token antes de renderizar cualquier pantalla protegida, forzando la redirección al *Login* ante respuestas HTTP 401 (No Autorizado).
+* **RNF-004: Responsividad y Estándares de UI.** La interfaz de usuario debe desarrollarse bajo el enfoque *Mobile-First* utilizando Bootstrap 5. Debe respetar estrictamente la identidad gráfica corporativa (uso de paleta basada en Azul ISA #0066CC) y asegurar tiempos de renderizado inicial inferiores a 3 segundos.
+* **RNF-005: Seguridad en el Cliente.** El sistema debe sanitizar y validar obligatoriamente todas las entradas de formularios mediante HTML5 y JavaScript antes de su envío al servidor. Todas las peticiones HTTP protegidas deben inyectar el token JWT dinámicamente en el encabezado `Authorization`.
+* **RNF-006: Tolerancia a Fallos y UX Asíncrona.** El sistema debe manejar excepciones de red y tiempos de espera (timeouts) de forma elegante. Las actualizaciones de datos (ej. guardar un bono) no deben recargar la página completa, utilizando en su lugar indicadores de carga visuales (spinners) y alertas contextuales.

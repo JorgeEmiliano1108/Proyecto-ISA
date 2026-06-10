@@ -1,0 +1,30 @@
+.text-dark-blue { color: #1e3a5f; }
+.bg-warning-subtle { background-color: #fff9e6; color: #856404; }
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.smaller { font-size: 0.8rem; }
+
+.table th {
+    background-color: #f8f9fa;
+    border: none;
+}
+
+#contenedor-pendientes .card:hover {
+    transform: scale(1.01);
+    border-color: #0d6efd !important;
+}
+
+.btn-success {
+    background: var(--grilla-success, #10b981);
+    border-color: var(--grilla-success, #10b981);
+}
+
+.btn-success:hover {
+    background: #059669;
+    border-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}

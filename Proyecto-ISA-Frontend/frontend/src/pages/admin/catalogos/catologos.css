@@ -1,0 +1,53 @@
+.text-dark-blue { color: #1e3a5f; }
+.bg-light-blue-bg { background-color: #f4f7fc; } /* Fondo de los paneles laterales */
+
+/* Iconos de categoría y tarjetas */
+.icon-square {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 1.5rem;
+}
+
+.icon-square-sm {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Efectos de la lista de estructura (Drag & Drop UI) */
+.menu-item-row {
+    transition: all 0.2s ease;
+}
+.menu-item-row:hover {
+    border-color: #0d6efd !important;
+}
+
+.drag-handle, .drag-handle-sm {
+    cursor: grab;
+    opacity: 0.5;
+}
+.drag-handle:hover, .drag-handle-sm:hover {
+    opacity: 1;
+    color: #0d6efd !important;
+}
+
+/* Bordes punteados para botón "Agregar" */
+.border-dashed {
+    border: 1px dashed #cbd5e1;
+    background: transparent;
+}
+.border-dashed:hover {
+    background: #f8fafc;
+    border-color: #0d6efd;
+}
+
+/* Ajustes de utilidades */
+.hover-bg-light:hover { background-color: #f8fafc; }
+.smaller { font-size: 0.8rem; }

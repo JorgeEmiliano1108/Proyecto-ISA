@@ -1,0 +1,153 @@
+/* Variables Globales */
+:root {
+    --sidebar-collapsed: 80px;
+    --sidebar-expanded: 260px;
+    --primary-color: #1e40af; 
+}
+
+/* Sidebar Fijo con Hover */
+.sidebar {
+    width: var(--sidebar-collapsed);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    
+    /* Fondo tintado */
+    background-color: var(--primary-color);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
+    border-right: 1px solid rgba(0, 0, 0, 0.08); 
+    
+    z-index: 1050; 
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s ease, 
+                background-color 0.3s ease;
+}
+
+.sidebar:hover {
+    width: var(--sidebar-expanded);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1); 
+}
+
+/* --- LOGO --- */
+.sidebar-logo {
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap; 
+    overflow: hidden;
+}
+
+.sidebar-logo h4 {
+    color: var(--primary-color);
+    transition: color 0.3s ease;
+    font-size: 1.25rem; 
+    line-height: 1.1;
+    filter: brightness(0.8);
+}
+
+/* --- ENLACES DEL SIDEBAR --- */
+.sidebar-link {
+    color: #334155; 
+    padding: 12px 0; 
+    border-radius: 8px;
+    margin: 5px 10px; 
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-link i {
+    font-size: 1.4rem !important;
+    min-width: 60px; 
+    text-align: center;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.6); 
+    color: var(--primary-color);
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+/* --- ANIMACIÓN DE LOS TEXTOS --- */
+.link-text,
+.logo-corp {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.sidebar:hover .link-text,
+.sidebar:hover .logo-corp {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0.1s; 
+}
+
+/* --- BARRA SUPERIOR (Navbar) --- */
+.top-navbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-collapsed); 
+    right: 0;
+    height: 70px;
+    background-color: var(--primary-color);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85));
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 999;
+    /* Añadimos 'left' a la transición para que se empuje suavemente */
+    transition: background-color 0.3s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- CONTENIDO PRINCIPAL --- */
+.page-content {
+    margin-left: var(--sidebar-collapsed);
+    margin-top: 70px;
+    padding: 30px;
+    min-height: calc(100vh - 70px);
+    background-color: #f1f5f9; 
+    /* Añadimos transición para que el contenido se empuje suavemente */
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================
+   MAGIA PARA EMPUJAR EL CONTENIDO
+   Si la sidebar tiene hover, empujamos el navbar y el contenido 
+   ========================================================= */
+body:has(.sidebar:hover) .top-navbar {
+    left: var(--sidebar-expanded);
+}
+
+body:has(.sidebar:hover) .page-content {
+    margin-left: var(--sidebar-expanded);
+}
+
+/* Iconos de la Navbar */
+.hover-icon {
+    transition: transform 0.2s, color 0.2s;
+}
+
+.hover-icon:hover {
+    transform: translateY(-2px);
+}
+
+.hover-icon:hover i {
+    color: var(--primary-color) !important;
+}
+
+.top-navbar .badge {
+    background-color: var(--primary-color) !important;
+}

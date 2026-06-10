@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Catálogos - ISA Corporativo</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="../../../../css/styles.css">
+    <link rel="stylesheet" href="../../../components/layout/layout.css">
+    <link rel="stylesheet" href="./catalogos.css">
+</head>
+<body>
+    <div id="layout-container"></div>
+
+    <main class="page-content">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                <div>
+                    <h2 class="fw-bold text-dark-blue">Gestión de Catálogos</h2>
+                    <p class="text-muted mb-0">Configura datos maestros del sistema, constantes de entidad y el árbol de navegación dinámico.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light border text-primary fw-bold">Exportar Esquema</button>
+                    <button class="btn btn-primary px-4 fw-bold">+ Nuevo Catálogo</button>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3">
+                    <div class="card border-0 shadow-sm mb-4 bg-light-blue-bg" style="border-radius: 12px;">
+                        <div class="card-body">
+                            <h6 class="text-uppercase small fw-bold text-muted mb-3">Categorías Maestras</h6>
+                            <div class="nav flex-column gap-2" id="lista-categorias">
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm bg-light-blue-bg" style="border-radius: 12px;">
+                        <div class="card-body">
+                            <h6 class="text-uppercase small fw-bold text-muted mb-3">Estado de Sincronización</h6>
+                            <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+                                <span class="small text-muted">Último Despliegue</span>
+                                <span class="small fw-bold text-success">Hace 14 min</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-muted">Instancias Activas</span>
+                                <span class="small fw-bold">12 / 12</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-9">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="icon-square bg-light text-primary border"><i class="bi bi-diagram-3" id="icono-catalogo"></i></div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark-blue" id="titulo-catalogo">Competencias</h5>
+                                        <p class="text-muted small mb-0" id="subtitulo-catalogo">Catálogo de competencias del sistema</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 text-muted">
+                                    <span class="badge bg-light text-muted border px-3 py-2" id="items-count">0 registros</span>
+                                </div>
+                            </div>
+
+                            <div id="estructura-menu" class="d-flex flex-column gap-2 mb-4">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm bg-light-blue-bg h-100" style="border-radius: 12px;">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-dark-blue mb-4 d-flex align-items-center gap-2">
+                                <i class="bi bi-journal-text"></i> Registro de Actividad
+                            </h6>
+                            <div id="lista-actividad" class="d-flex flex-column gap-3">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm bg-light-blue-bg h-100" style="border-radius: 12px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h6 class="fw-bold text-dark-blue d-flex align-items-center gap-2">
+                                    <i class="bi bi-bar-chart-fill"></i> Uso de Navegación
+                                </h6>
+                                <span class="badge bg-white text-muted border">ÚLTIMOS 30 DÍAS</span>
+                            </div>
+                            
+                            <div style="position: relative; height: 150px; width: 100%;">
+                                <canvas id="chart-navegacion"></canvas>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="modalEditarCatalogo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark-blue" id="modal-titulo">Editar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-editar-catalogo">
+                        <div id="campos-dinamicos"></div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Activo</label>
+                            <select class="form-select" id="campo-activo">
+                                <option value="true">Sí</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary fw-bold" onclick="guardarEdicion()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    <script src="../../../components/layout/layout.js"></script>
+    <script src="../../../components/layout/modal-notificaciones.js"></script>
+    <script src="../../../components/layout/modal-perfil.js"></script>
+    <script src="./catalogos.js"></script>
+</body>
+</html>

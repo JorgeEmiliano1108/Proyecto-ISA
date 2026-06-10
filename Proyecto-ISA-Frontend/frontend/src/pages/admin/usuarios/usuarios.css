@@ -1,0 +1,122 @@
+/* --- VARIABLES Y COLORES CORPORATIVOS --- */
+:root {
+    --dark-blue: #0d2540;
+    --primary-blue: #0d6efd;
+    --light-blue: #eef4ff;
+    --success-green: #198754;
+    --text-muted: #6c757d;
+}
+
+/* --- ESTILOS GENERALES --- */
+.text-dark-blue { color: var(--dark-blue); }
+.bg-light-blue { background-color: var(--light-blue); color: var(--primary-blue); }
+.bg-dark-blue { background-color: var(--dark-blue); }
+
+/* --- TARJETAS DE KPIS --- */
+.card { 
+    border-radius: 15px; 
+    transition: all 0.3s ease; 
+    border: none;
+}
+
+.card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+}
+
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.3rem;
+}
+
+/* --- TABLA DE USUARIOS --- */
+.table-responsive {
+    border-radius: 10px;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #edf2f7;
+    padding: 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Avatar circular en la tabla */
+.bg-secondary-subtle {
+    background-color: #e9ecef !important;
+    color: var(--dark-blue);
+    font-weight: bold;
+}
+
+/* --- ESTADOS Y BADGES --- */
+.text-success { color: var(--success-green) !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+.badge {
+    padding: 5px 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* --- FORMULARIOS Y MODALES --- */
+.modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid #dee2e6;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    outline: none;
+}
+
+.input-group-text {
+    border-radius: 8px 0 0 8px;
+    background-color: white;
+    color: var(--text-muted);
+}
+
+/* --- PAGINACIÓN --- */
+.pagination .page-link {
+    border-radius: 6px;
+    margin: 0 3px;
+    border: 1px solid #dee2e6;
+    color: var(--primary-blue);
+    padding: 5px 12px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: white;
+}
+
+/* --- BOTONES ACCIONES --- */
+.btn-sm {
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+}
