@@ -1,0 +1,808 @@
+================================================================================
+                    PLAN DEL PROYECTO ISA
+              Sistema de Evaluación Discrecional
+================================================================================
+
+VERSION: 1.0.0
+FECHA: 14-Abril-2026
+AUTOR: Proyecto en desarrollo
+
+================================================================================
+                              ÍNDICE
+================================================================================
+
+1. Resumen del Proyecto
+2. Stack Tecnológico
+3. Arquitectura: Defense in Depth
+4. Base de Datos (Supabase)
+5. Estructura de Carpetas
+6. Archivos a Crear
+7. Flujo de Implementación
+8. Variables de Entorno
+9. Docker Configuration
+10. Modelo de Datos (12 Tablas)
+11. Máquina de Estados (FSM)
+12. Reglas de Negocio
+13. Pasos de Implementación
+14. Validación y Pruebas
+
+================================================================================
+1. RESUMEN DEL PROYECTO
+================================================================================
+
+El Sistema ISA es una plataforma para digitalizar el proceso de evaluación de
+desempeño discrecional de ISA Corporativo.
+
+OBJETIVO:
+- Reemplazar el flujo físico (Excel + papel) por una plataforma digital
+- Automatizar el flujo de autorizaciones y firmas electrónicas
+- Garantizar trazabilidad y auditoría completa
+- Calcular bonos basados en desempeño y EBITDA
+
+ALCANCE:
+- Captura digital de evaluaciones
+- Máquina de estados para workflow de aprobación
+- Firma electrónica simple (Base64 Canvas)
+- Cálculo automático de bonos
+- Notificaciones automáticas
+- Auditoría de todos los cambios
+
+USUARIOS:
+- Coordinadores (evaluados)
+- Gerentes (evaluadores/aprobadores)
+- Directores (aprobadores finales)
+- Contraloría (solo lectura)
+
+================================================================================
+2. STACK TECNOLÓGICO
+================================================================================
+
+FRAMEWORK:
+- Django 5.0.4
+- Django REST Framework 3.15.1
+
+BASE DE DATOS:
+- PostgreSQL 16 (Supabase Cloud)
+- Motor: postgresql+asyncpg
+
+AUTENTICACIÓN:
+- JWT (JSON Web Tokens) Stateless
+- SimpleJWT 5.3.0
+
+CONTENEDORES:
+- Docker + Docker Compose
+- Python 3.12-slim
+
+DEPENDENCIAS PRINCIPALES:
+- django==5.0.4
+- djangorestframework==3.15.1
+- djangorestframework-simplejwt==5.3.0
+- django-cors-headers==4.3.1
+- django-environ==0.11.2
+- psycopg[binary]==3.1.18
+- gunicorn==22.0.0
+- celery==5.3.6
+- redis==5.0.1
+
+================================================================================
+3. ARQUITECTURA: DEFENSE IN DEPTH
+================================================================================
+
+Esta arquitectura separa estrictamente las responsabilidades en capas concéntricas,
+garantizando que ninguna vulnerabilidad en una capa comprometa las demás.
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        views.py (APIS)                                     │
+│  - Capa de TRANSPORTE                                                      │
+│  - Recibe peticiones HTTP                                                   │
+│  - Valida JWT authentication                                               │
+│  - Valida permisos RBAC                                                     │
+│  - Valida esquemas (DRF Serializers)                                        │
+│  - Delega a services                                                       │
+│  - PROHIBIDO: Lógica de negocio, ORM queries                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        services.py                                          │
+│  - Capa de NEGOCIO                                                         │
+│  - Lógica de estado (State Machine)                                        │
+│  - Cálculo de bonos                                                        │
+│  - Validaciones complejas                                                  │
+│  - Envía eventos al audit_service (HTTP)                                   │
+│  - PROHIBIDO: Queries directas a BD                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        selectors.py                                         │
+│  - Capa de LECTURA                                                         │
+│  - Consultas optimizadas (select_related, prefetch_related)                │
+│  - NO modifica datos                                                       │
+│  - Centraliza queries complejas                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        models.py                                            │
+│  - Capa de DATOS                                                           │
+│  - Define estructuras de tablas                                             │
+│  - managed = False (NO crea/modifica tablas)                               │
+│  - Constraints y validaciones de BD                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+REGLA CRUCIAL: views.py → services.py → selectors.py → models.py
+                (nunca en sentido contrario)
+
+================================================================================
+4. BASE DE DATOS (SUPABASE)
+================================================================================
+
+CONEXIÓN:
+- Host: aws-1-us-west-2.pooler.supabase.com
+- Puerto: 6543
+- Base de datos: postgres
+- Usuario: postgres.pkihspbkksoggvvwcbam
+- Contraseña: admin_database2026
+
+URI DE CONEXIÓN:
+postgresql://postgres.pkihspbkksoggvvwcbam:admin_database2026@aws-1-us-west-2.pooler.supabase.com:6543/postgres
+
+NOTA IMPORTANTE:
+- Las tablas YA EXISTEN en Supabase
+- Django usará inspectdb para generar modelos
+- Todos los modelos tendrán managed = False
+- Django NO creará/modificará el esquema
+
+================================================================================
+5. ESTRUCTURA DE CARPETAS
+================================================================================
+
+backend_django/
+│
+├── config/                          # Configuración del Proyecto Django
+│   ├── __init__.py
+│   ├── settings.py                  # Settings completos (Supabase, JWT, DRF)
+│   ├── urls.py                      # URL principal + admin
+│   ├── wsgi.py                     # WSGI entrypoint (Gunicorn)
+│   └── asgi.py                     # ASGI entrypoint (ASGI servers)
+│
+├── apps/                            # Aplicaciones Django
+│   ├── __init__.py
+│   │
+│   ├── catalog/                     # Catálogos del Sistema
+│   │   ├── __init__.py
+│   │   ├── models.py               # cat_roles, cat_departamentos,
+│   │   │                           # cat_competencias, cat_periodos
+│   │   ├── admin.py                # Registro en Admin
+│   │   ├── apis.py                 # ViewSets (listar, crear, editar)
+│   │   ├── services.py             # Lógica de catálogos
+│   │   ├── selectors.py            # Consultas optimizadas
+│   │   └── urls.py                 # Rutas /api/v1/catalog/
+│   │
+│   ├── users/                       # Gestión de Usuarios
+│   │   ├── __init__.py
+│   │   ├── models.py               # Usuario (extiende AbstractUser)
+│   │   │                           # Con manager_id (jerarquía recursiva)
+│   │   ├── admin.py                # Registro en Admin
+│   │   ├── apis.py                 # ViewSets (CRUD usuarios)
+│   │   ├── services.py             # Lógica de usuarios
+│   │   ├── selectors.py            # Consultas con jerarquía
+│   │   └── urls.py                 # Rutas /api/v1/users/
+│   │
+│   ├── evaluations/                 # Evaluaciones (CORE)
+│   │   ├── __init__.py
+│   │   ├── models.py               # Evaluacion, CompetenciaDetalle, Objetivo
+│   │   ├── admin.py                # Registro en Admin
+│   │   ├── apis.py                 # ViewSets con transiciones
+│   │   ├── services.py             # State Machine DRAFT→CLOSED
+│   │   ├── selectors.py            # Consultas de evaluaciones
+│   │   └── urls.py                 # Rutas /api/v1/evaluations/
+│   │
+│   ├── approvals/                   # Firmas y Auditoría
+│   │   ├── __init__.py
+│   │   ├── models.py               # HistorialEstado, Aprobacion
+│   │   ├── admin.py                # Registro en Admin
+│   │   ├── apis.py                 # ViewSets (registrar firma)
+│   │   ├── services.py             # Lógica de firmas, validar rechazo
+│   │   ├── selectors.py            # Consultas de historial
+│   │   └── urls.py                 # Rutas /api/v1/approvals/
+│   │
+│   ├── bonuses/                     # Cálculo de Bonos
+│   │   ├── __init__.py
+│   │   ├── models.py               # Bono (snapshot financiero)
+│   │   ├── admin.py                # Registro en Admin
+│   │   ├── apis.py                 # ViewSets (ver, calcular)
+│   │   ├── services.py             # Lógica: salario × ebitda × performance
+│   │   ├── selectors.py            # Consultas de bonos
+│   │   └── urls.py                 # Rutas /api/v1/bonuses/
+│   │
+│   └── notifications/               # Correos y Recordatorios
+│       ├── __init__.py
+│       ├── tasks.py                 # Celery: recordatorio cada 3 días
+│       ├── services.py              # Plantillas de email
+│       └── urls.py                 # Rutas /api/v1/notifications/
+│
+├── core/                            # Utilidades Transversales
+│   ├── __init__.py
+│   ├── authentication.py           # JWT Authentication
+│   ├── audit_client.py             # Cliente HTTP → audit_service
+│   ├── exceptions.py               # Excepciones custom
+│   ├── mixins.py                  # Mixins de seguridad (RBAC)
+│   └── utils.py                    # Funciones auxiliares
+│
+├── scripts/                         # Scripts Utilitarios
+│   └── create_superuser.py         # Crear superuser admin
+│
+├── media/                          # Archivos subidos (firmas, PDFs)
+│
+├── static/                         # Archivos estáticos (CSS, JS)
+│
+├── templates/                      # Templates HTML (admin, si aplica)
+│
+├── manage.py                       # Django management script
+├── requirements.txt                # Dependencias Python
+├── Dockerfile                      # Multi-stage build
+├── docker-compose.yml              # Orquestación Docker
+├── entrypoint.sh                  # Script de entrada Docker
+├── .env                           # Variables de entorno (NO commitear)
+└── .env.example                   # Template de variables
+
+================================================================================
+6. ARCHIVOS A CREAR
+================================================================================
+
+CONFIGURACIÓN:
+- config/__init__.py
+- config/settings.py              (conexión Supabase, JWT, DRF, Celery)
+- config/urls.py                  (routing principal)
+- config/wsgi.py                 (Gunicorn entrypoint)
+- config/asgi.py                 (ASGI entrypoint)
+
+CORE:
+- core/__init__.py
+- core/authentication.py          (JWT auth backend)
+- core/audit_client.py            (HTTP client para audit_service)
+- core/exceptions.py              (Custom exceptions)
+- core/mixins.py                 (Security mixins)
+- core/utils.py                  (Helper functions)
+
+CATALOG APP:
+- apps/catalog/__init__.py
+- apps/catalog/models.py          (generado con inspectdb)
+- apps/catalog/admin.py          (registro en admin)
+- apps/catalog/apis.py           (ViewSets)
+- apps/catalog/services.py       (lógica)
+- apps/catalog/selectors.py      (queries)
+- apps/catalog/urls.py
+
+USERS APP:
+- apps/users/__init__.py
+- apps/users/models.py           (generado con inspectdb)
+- apps/users/admin.py
+- apps/users/apis.py
+- apps/users/services.py
+- apps/users/selectors.py
+- apps/users/urls.py
+
+EVALUATIONS APP:
+- apps/evaluations/__init__.py
+- apps/evaluations/models.py    (generado con inspectdb)
+- apps/evaluations/admin.py
+- apps/evaluations/apis.py     (ViewSets + state transitions)
+- apps/evaluations/services.py  (State Machine FSM)
+- apps/evaluations/selectors.py
+- apps/evaluations/urls.py
+
+APPROVALS APP:
+- apps/approvals/__init__.py
+- apps/approvals/models.py     (generado con inspectdb)
+- apps/approvals/admin.py
+- apps/approvals/apis.py
+- apps/approvals/services.py
+- apps/approvals/selectors.py
+- apps/approvals/urls.py
+
+BONUSES APP:
+- apps/bonuses/__init__.py
+- apps/bonuses/models.py       (generado con inspectdb)
+- apps/bonuses/admin.py
+- apps/bonuses/apis.py
+- apps/bonuses/services.py     (cálculo EBITDA)
+- apps/bonuses/selectors.py
+- apps/bonuses/urls.py
+
+NOTIFICATIONS APP:
+- apps/notifications/__init__.py
+- apps/notifications/tasks.py  (Celery tasks)
+- apps/notifications/services.py
+- apps/notifications/urls.py
+
+UTILIDADES:
+- scripts/create_superuser.py
+- apps/__init__.py
+
+CONFIGURACIÓN DOCKER:
+- requirements.txt
+- Dockerfile
+- docker-compose.yml
+- entrypoint.sh
+
+================================================================================
+7. FLUJO DE IMPLEMENTACIÓN
+================================================================================
+
+FASE 1: Estructura Base
+├── 1.1 Crear manage.py
+├── 1.2 Crear config/
+├── 1.3 Crear settings.py
+├── 1.4 Crear requirements.txt
+├── 1.5 Crear Dockerfile
+├── 1.6 Crear docker-compose.yml
+└── 1.7 Crear entrypoint.sh
+
+FASE 2: Docker Build
+├── 2.1 docker compose up --build
+├── 2.2 Verificar conexión a Supabase
+└── 2.3 inspectdb genera models.py
+
+FASE 3: Modelos
+├── 3.1 models.py con managed = False
+├── 3.2 Admin registration
+└── 3.3 Probar Admin con 12 tablas
+
+FASE 4: APIs (Views + Serializers)
+├── 4.1 Catalog APIs
+├── 4.2 Users APIs
+├── 4.3 Evaluations APIs (con state machine)
+├── 4.4 Approvals APIs
+└── 4.5 Bonuses APIs
+
+FASE 5: Services (Lógica de Negocio)
+├── 5.1 State Machine DRAFT→CLOSED
+├── 5.2 Cálculo de Bonos
+├── 5.3 Firma Digital (validación Base64)
+└── 5.4 Notificaciones
+
+FASE 6: Validación
+├── 6.1 Probar endpoints con Postman/curl
+├── 6.2 Probar flujo completo evaluación
+└── 6.3 Verificar logs en Supabase
+
+================================================================================
+8. VARIABLES DE ENTORNO (.env)
+================================================================================
+
+# Django
+SECRET_KEY=django-insecure-change-this-in-production-use-strong-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Supabase PostgreSQL
+DB_ENGINE=django.db.backends.postgresql
+DB_HOST=aws-1-us-west-2.pooler.supabase.com
+DB_PORT=6543
+DB_NAME=postgres
+DB_USER=postgres.pkihspbkksoggvvwcbam
+DB_PASSWORD=admin_database2026
+
+# JWT Authentication
+JWT_SECRET_KEY=jwt-super-secret-key-change-in-production
+JWT_ACCESS_TOKEN_LIFETIME_MINUTES=60
+JWT_REFRESH_TOKEN_LIFETIME_DAYS=7
+JWT_ALGORITHM=HS256
+
+# CORS
+CORS_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+CORS_ALLOW_CREDENTIALS=True
+
+# Email (para notificaciones)
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=noreply@isa.com
+EMAIL_HOST_PASSWORD=email-password
+EMAIL_USE_TLS=True
+
+# Celery (Redis)
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# External Services
+AUDIT_SERVICE_URL=http://localhost:8002/api/v1/audit/
+
+================================================================================
+9. DOCKER CONFIGURATION
+================================================================================
+
+DOCKERFILE (Multi-stage):
+──────────────────────────
+Stage 1: Builder
+- python:3.12-slim
+- Instala dependencias de sistema (libpq-dev, gcc)
+- Copia requirements.txt
+- pip install --no-cache-dir -r requirements.txt
+
+Stage 2: Production
+- python:3.12-slim
+- Crea usuario no-root
+- Copia dependencias instaladas
+- Copia código de la app
+- Expone puerto 8000
+- USER no-root
+
+DOCKER-COMPOSE.YML:
+────────────────────
+services:
+  web:
+    build: ./backend_django
+    command: >
+      sh -c "chmod +x entrypoint.sh && ./entrypoint.sh"
+    volumes:
+      - ./backend_django:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
+
+ENTRYPOINT.SH:
+───────────────
+#!/bin/bash
+set -e
+
+# Esperar a Supabase
+echo "Esperando conexión a Supabase..."
+until PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c '\q' 2>/dev/null; do
+  echo "Supabase no disponible, reintentando en 5 segundos..."
+  sleep 5
+done
+
+echo "Supabase disponible. Ejecutando inspectdb..."
+
+# Generar modelos desde Supabase
+python manage.py inspectdb > apps/models_auto.py
+
+# Migrar tablas internas de Django
+python manage.py migrate
+
+# Crear superuser si no existe
+python manage.py shell < scripts/create_superuser.py
+
+echo "Iniciando Gunicorn..."
+exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4
+
+================================================================================
+10. MODELO DE DATOS (12 TABLAS)
+================================================================================
+
+CATÁLOGOS:
+──────────
+
+1. cat_roles
+   ├── id: SERIAL (PK)
+   ├── nombre: VARCHAR(50)
+   ├── nivel_aprobacion: INTEGER (0-99)
+   └── activo: BOOLEAN
+
+2. cat_departamentos
+   ├── id: SERIAL (PK)
+   ├── nombre: VARCHAR(100)
+   └── activo: BOOLEAN
+
+3. cat_competencias
+   ├── id: SERIAL (PK)
+   ├── nombre: VARCHAR(100)
+   ├── descripcion: TEXT
+   └── activo: BOOLEAN
+
+4. cat_periodos
+   ├── id: SERIAL (PK)
+   ├── nombre: VARCHAR(50)
+   └── activo: BOOLEAN
+
+TRANSACCIONAL:
+─────────────
+
+5. usuarios
+   ├── id: UUID (PK)
+   ├── username: VARCHAR(50)
+   ├── email: VARCHAR(255)
+   ├── rol_id: INTEGER (FK → cat_roles)
+   ├── departamento_id: INTEGER (FK → cat_departamentos)
+   ├── manager_id: UUID (FK → usuarios, Self-Join)
+   ├── fecha_registro: TIMESTAMP
+   └── activo: BOOLEAN
+
+6. evaluaciones
+   ├── id: UUID (PK)
+   ├── evaluado_id: UUID (FK → usuarios)
+   ├── evaluador_id: UUID (FK → usuarios)
+   ├── periodo_id: INTEGER (FK → cat_periodos)
+   ├── estado: VARCHAR(50) [DRAFT, SUBMITTED, PENDING_APPROVAL, APPROVED, CLOSED]
+   ├── logros_previos: TEXT
+   ├── comentarios_evaluador: TEXT
+   ├── comentarios_evaluado: TEXT
+   ├── fecha_creacion: TIMESTAMP
+   ├── fecha_actualizacion: TIMESTAMP
+   ├── fecha_ultimo_recordatorio: TIMESTAMP
+   ├── calificacion_global: DECIMAL(3,2)
+   └── requiere_aprobacion_gerente: BOOLEAN
+
+7. competencias_detalle
+   ├── id: UUID (PK)
+   ├── evaluacion_id: UUID (FK → evaluaciones)
+   ├── competencia_id: INTEGER (FK → cat_competencias)
+   ├── calificacion: INTEGER (CHECK 1-5)
+   └── comentario: TEXT
+
+8. objetivos
+   ├── id: UUID (PK)
+   ├── evaluacion_id: UUID (FK → evaluaciones)
+   └── descripcion: TEXT
+
+AUDITORÍA:
+──────────
+
+9. historial_estados
+   ├── id: UUID (PK)
+   ├── evaluacion_id: UUID (FK → evaluaciones)
+   ├── estado_anterior: VARCHAR(50)
+   ├── estado_nuevo: VARCHAR(50)
+   ├── usuario_id: UUID (FK → usuarios)
+   ├── comentario: TEXT (OBLIGATORIO si estado_nuevo=REJECTED)
+   └── fecha: TIMESTAMP
+
+10. aprobaciones
+    ├── id: UUID (PK)
+    ├── evaluacion_id: UUID (FK → evaluaciones)
+    ├── rol_id: INTEGER (FK → cat_roles)
+    ├── usuario_id: UUID (FK → usuarios)
+    ├── firma_digital_base64: TEXT
+    ├── ip_address: VARCHAR(45)
+    └── fecha_firma: TIMESTAMP
+
+FINANZAS:
+─────────
+
+11. logs_sistema
+    ├── id: UUID (PK)
+    ├── usuario_id: UUID (FK → usuarios)
+    ├── accion: VARCHAR(50)
+    ├── ip_address: VARCHAR(45)
+    ├── detalle: TEXT
+    └── fecha: TIMESTAMP
+
+12. bonos
+    ├── id: UUID (PK)
+    ├── evaluacion_id: UUID (FK → evaluaciones)
+    ├── salario_base_snapshot: DECIMAL(12,2)
+    ├── impacto_ebitda_logrado: DECIMAL(5,2)
+    ├── performance_index: DECIMAL(5,2)
+    ├── monto_final_bono: DECIMAL(12,2)
+    └── fecha_calculo: TIMESTAMP
+
+================================================================================
+11. MÁQUINA DE ESTADOS (FSM)
+================================================================================
+
+DIAGRAMA DE ESTADOS:
+────────────────────
+
+       ┌──────────────────────────────────────────────────────────┐
+       │                                                          │
+       │    ┌───────┐                                           │
+       │    │ DRAFT │ ← Estado inicial                          │
+       │    └───┬───┘   El evaluado puede editar                │
+       │        │                                               │
+       │        │ submit_evaluation()                           │
+       │        ▼                                               │
+       │    ┌───────────┐                                       │
+       │    │ SUBMITTED │ Ya no es editable por evaluado        │
+       │    └─────┬─────┘                                       │
+       │          │                                             │
+       │          │ approve_by_coordinator()                    │
+       │          ▼                                             │
+       │    ┌────────────────────┐                              │
+       │    │ PENDING_APPROVAL  │ ← En espera de firmas        │
+       │    └─────────┬──────────┘                              │
+       │              │                                         │
+       │     ┌────────┴────────┐                                │
+       │     │                 │                                │
+       │     ▼                 ▼                                │
+       │  ┌─────────┐   ┌───────────┐                         │
+       │  │ APPROVED│   │ REJECTED  │ ← Requiere comentario    │
+       │  └────┬────┘   └─────┬─────┘                         │
+       │       │              │                                 │
+       │       │              │ (comentario obligatorio)        │
+       │       │              │                                 │
+       │       │              └─────────────────────────────────┤
+       │       │                                                  │
+       │       ▼                                                  │
+       │  ┌─────────┐                                            │
+       │  │ CLOSED  │ ← Estado final, inmutable                  │
+       │  └─────────┘                                            │
+       │                                                          │
+       └──────────────────────────────────────────────────────────┘
+
+REGLAS DE TRANSICIÓN:
+─────────────────────
+
+| Estado Actual        | Acción                  | Estado Siguiente      | Condiciones                    |
+|---------------------|-------------------------|----------------------|--------------------------------|
+| DRAFT              | submit                  | SUBMITTED            | Todas las competencias llenas    |
+| SUBMITTED          | approve                 | PENDING_APPROVAL     | Evaluador es Coordinador       |
+| PENDING_APPROVAL   | approve                 | APPROVED             | Si no requiere gerente          |
+| PENDING_APPROVAL   | escalate                | PENDING_APPROVAL     | Si requiere gerente, aprobar    |
+| PENDING_APPROVAL   | reject                  | DRAFT                | Comentario OBLIGATORIO         |
+| APPROVED           | close                   | CLOSED               | Solo Director                  |
+
+VALIDACIONES:
+─────────────
+- No se pueden saltar estados
+- Solo el evaluador puede editar en estado DRAFT
+- Solo el aprobador puede aprobar/rechazar en PENDING_APPROVAL
+- REJECTED requiere comentario obligatorio
+- CLOSED es inmutable
+
+================================================================================
+12. REGLAS DE NEGOCIO
+================================================================================
+
+AUTENTICACIÓN:
+──────────────
+- JWT stateless authentication
+- Access token: 60 minutos
+- Refresh token: 7 días
+- Tokens firmados con HS256
+
+CONTROL DE ACCESO (RBAC):
+─────────────────────────
+| Rol            | Permisos                                                    |
+|----------------|-------------------------------------------------------------|
+| Coordinador    | Crear/editar propias evaluaciones, ver propias              |
+| Gerente        | Aprobar evaluaciones de subordinados, ver propias           |
+| Director       | Aprobar evaluaciones finales, cerrar evaluaciones           |
+| Contraloría    | Solo lectura de TODAS las evaluaciones                      |
+| Admin          | Acceso total, gestión de usuarios y catálogos               |
+
+JERARQUÍA:
+──────────
+- Campo manager_id en usuarios permite jerarquía recursiva
+- El sistema consulta automáticamente al manager del aprobador
+- Ejemplo: Coordinador → Gerente → Director
+
+CÁLCULO DE BONOS:
+─────────────────
+Fórmula:
+  monto_final_bono = salario_base × (impacto_ebitda / 100) × performance_index × factor_rol
+
+Donde:
+- salario_base: Capturado al momento de aprobación (snapshot)
+- impacto_ebitda: Porcentaje de alcance de meta (0.00-100.00)
+- performance_index: Calificación global (1.00-5.00)
+- factor_rol: Depende del nivel (Coordinador: 1.0, Gerente: 1.2, Director: 1.5)
+
+FIRMAS DIGITALES:
+─────────────────
+- Capturadas via Canvas HTML5 en frontend
+- Almacenadas como texto Base64
+- Validadas: debe ser data:image/png;base64,... o similar
+- IP del firmante capturada automáticamente
+- Timestamp del servidor (no del cliente)
+
+AUDITORÍA:
+──────────
+- Cada cambio de estado registra en historial_estados
+- Cada firma registra en aprobaciones
+- Cada acción de sistema registra en logs_sistema
+- Envío asíncrono a audit_service (FastAPI) si disponible
+
+NOTIFICACIONES:
+───────────────
+- Recordatorios cada 3 días si hay evaluaciones pendientes
+- Notificación al gerente cuando subordinado envía evaluación
+- Notificación al evaluado cuando evaluación es aprobada/rechazada
+
+================================================================================
+13. PASOS DE IMPLEMENTACIÓN
+================================================================================
+
+PASO 1: Crear estructura base
+─────────────────────────────
+- Crear manage.py
+- Crear config/settings.py
+- Crear requirements.txt
+- Crear estructura de carpetas
+
+PASO 2: Docker setup
+────────────────────
+- Crear Dockerfile
+- Crear docker-compose.yml
+- Crear entrypoint.sh
+- Probar build: docker compose up --build
+
+PASO 3: inspectdb
+──────────────────
+- Ejecutar inspectdb desde container
+- Generar apps/models_auto.py
+- Dividir en apps por tabla
+- Agregar managed = False
+
+PASO 4: Admin
+──────────────
+- Crear admin.py para cada app
+- Registrar modelos en admin
+- Probar acceso a /admin/
+
+PASO 5: APIs
+─────────────
+- Crear serializers.py
+- Crear apis.py (ViewSets)
+- Crear urls.py
+- Configurar routing en config/urls.py
+
+PASO 6: Services
+────────────────
+- Crear services.py para cada app
+- Implementar State Machine en evaluations/services.py
+- Implementar cálculo de bonos en bonuses/services.py
+
+PASO 7: Selectors
+─────────────────
+- Crear selectors.py para cada app
+- Implementar queries optimizadas
+- Usar select_related y prefetch_related
+
+PASO 8: Authentication
+───────────────────────
+- Configurar SimpleJWT
+- Crear custom authentication backend
+- Proteger endpoints con @permission_classes
+
+PASO 9: Core utilities
+───────────────────────
+- Implementar audit_client.py
+- Implementar exceptions.py
+- Implementar mixins.py
+
+PASO 10: Notifications
+──────────────────────
+- Configurar Celery
+- Crear tasks.py
+- Implementar recordatorios cada 3 días
+
+================================================================================
+14. VALIDACIÓN Y PRUEBAS
+================================================================================
+
+PRUEBAS DE CONEXIÓN:
+────────────────────
+1. docker compose up
+2. Verificar logs: "Supabase disponible"
+3. Verificar migrate: "Operations to perform: apply all migrations"
+4. Acceder a http://localhost:8000/admin/
+5. Login con admin/admin123
+
+PRUEBAS DE API:
+───────────────
+1. POST /api/v1/auth/login/ → Obtener tokens
+2. GET /api/v1/catalog/roles/ → Listar roles
+3. GET /api/v1/evaluations/ → Listar evaluaciones
+4. POST /api/v1/evaluations/ → Crear evaluación
+5. PATCH /api/v1/evaluations/{id}/submit/ → Enviar
+6. PATCH /api/v1/evaluations/{id}/approve/ → Aprobar
+7. PATCH /api/v1/evaluations/{id}/reject/ → Rechazar (con comentario)
+
+PRUEBAS DE FLUJO:
+─────────────────
+1. Crear evaluación como Coordinador
+2. Enviar evaluación (DRAFT → SUBMITTED)
+3. Aprobar como Gerente (SUBMITTED → PENDING_APPROVAL → APPROVED)
+4. Cerrar como Director (APPROVED → CLOSED)
+5. Verificar historial_estados
+6. Verificar aprobaciones con firma
+7. Verificar cálculo de bono en bonuses
+
+================================================================================
+                              FIN DEL DOCUMENTO
+================================================================================

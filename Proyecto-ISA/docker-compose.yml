@@ -1,0 +1,499 @@
+# ==============================================================================
+# ISA Corporativo — Evaluación Discrecional
+# docker-compose.yml unificado (todos los servicios)
+#
+# Profiles:
+#   all       → Todo el sistema (~20 servicios)
+#   backend   → Solo Django web
+#   appwo     → Approval workflow (API + worker + beat + PG + Redis)
+#   audit     → Audit service (API + worker + PG + Redis + Ollama)
+#   reports   → Reports service (API + worker + PG + Redis + Qdrant + Ollama + MinIO + Prometheus)
+#
+# Uso (desde backend/):
+#   docker compose --profile all up -d                    # Todo
+#   docker compose --profile backend up -d                # Solo backend
+#   docker compose --profile backend --profile appwo up   # Backend + appwo
+# ==============================================================================
+
+services:
+
+  # ============================================================================
+  # BACKEND DJANGO
+  # ============================================================================
+  backend_django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    networks:
+      default:
+        aliases:
+          - backend-django
+          - backend
+    environment:
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - ALLOWED_HOSTS=127.0.0.1,localhost,127.0.0.1:3000,backend-django,backend
+      - REDIS_URL=redis://approval_redis:6379/0
+    profiles:
+      - backend
+      - all
+
+  # ============================================================================
+  # APPWO SERVICE (Approval Workflow)
+  # ============================================================================
+  approval_db:
+    image: postgres:16-alpine
+    container_name: approval_db
+    environment:
+      - POSTGRES_USER=${APPWO_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${APPWO_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${APPWO_DB_NAME:-approval_db}
+    ports:
+      - "5433:5432"
+    volumes:
+      - approval_pg_data:/var/lib/postgresql/data
+    profiles:
+      - appwo
+      - all
+
+  approval_redis:
+    image: redis:7-alpine
+    container_name: approval_redis
+    ports:
+      - "6380:6379"
+    profiles:
+      - appwo
+      - all
+
+  approval_api:
+    build:
+      context: ../microservicios/appwo_service
+      dockerfile: Dockerfile
+    container_name: approval_api
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${APPWO_DB_USER:-postgres}:${APPWO_DB_PASSWORD:-postgres}@approval_db:5432/${APPWO_DB_NAME:-approval_db}
+      - REDIS_URL=redis://approval_redis:6379/0
+      - USER_SERVICE_URL=http://backend_django:8000
+      - USE_MOCK_SERVICES=False
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+    env_file:
+      - ../microservicios/appwo_service/.env
+    depends_on:
+      - approval_db
+      - approval_redis
+    volumes:
+      - ../microservicios/appwo_service:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    profiles:
+      - appwo
+      - all
+
+  approval_worker:
+    build:
+      context: ../microservicios/appwo_service
+      dockerfile: Dockerfile
+    container_name: approval_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${APPWO_DB_USER:-postgres}:${APPWO_DB_PASSWORD:-postgres}@approval_db:5432/${APPWO_DB_NAME:-approval_db}
+      - REDIS_URL=redis://approval_redis:6379/0
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+    env_file:
+      - ../microservicios/appwo_service/.env
+    depends_on:
+      - approval_db
+      - approval_redis
+    profiles:
+      - appwo
+      - all
+
+  approval_beat:
+    build:
+      context: ../microservicios/appwo_service
+      dockerfile: Dockerfile
+    container_name: approval_beat
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    environment:
+      - REDIS_URL=redis://approval_redis:6379/0
+    depends_on:
+      - approval_redis
+    profiles:
+      - appwo
+      - all
+
+  # ============================================================================
+  # AUDIT SERVICE
+  # ============================================================================
+  postgres_audit:
+    image: postgres:16-alpine
+    container_name: postgres_audit_dev
+    environment:
+      - POSTGRES_USER=${AUDIT_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${AUDIT_DB_PASSWORD:-secret}
+      - POSTGRES_DB=${AUDIT_DB_NAME:-audit_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_audit_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - audit
+      - all
+
+  redis_audit:
+    image: redis:7-alpine
+    container_name: redis_audit_dev
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - audit
+      - all
+
+  ollama_audit:
+    image: ollama/ollama:latest
+    container_name: ollama_ai
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    entrypoint: >
+      /bin/sh -c "
+      ollama serve &
+      sleep 5 &&
+      ollama run phi3 &
+      wait"
+    profiles:
+      - audit
+      - all
+
+  audit_service:
+    build:
+      context: ../microservicios/audit_service
+      dockerfile: Dockerfile
+      target: development
+    container_name: audit_service_dev
+    ports:
+      - "8002:8000"
+    volumes:
+      - ../microservicios/audit_service/app:/app/app
+      - ../microservicios/audit_service/alembic:/app/alembic
+      - ../microservicios/audit_service/alembic.ini:/app/alembic.ini
+    environment:
+      - ENVIRONMENT=development
+      - POSTGRES_SERVER=postgres_audit
+      - POSTGRES_USER=${AUDIT_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${AUDIT_DB_PASSWORD:-secret}
+      - POSTGRES_DB=${AUDIT_DB_NAME:-audit_db}
+      - REDIS_SERVER=redis_audit
+      - REDIS_PORT=6379
+      - SECRET_KEY=dev_secret_key_123
+      - OLLAMA_SERVER=ollama_audit
+      - OLLAMA_PORT=11434
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+    env_file:
+      - ../microservicios/audit_service/.env
+    depends_on:
+      postgres_audit:
+        condition: service_healthy
+      redis_audit:
+        condition: service_healthy
+    profiles:
+      - audit
+      - all
+
+  process_validation_worker:
+    build:
+      context: ../microservicios/audit_service
+      dockerfile: Dockerfile
+      target: development
+    container_name: audit_ai_worker
+    command: ["python", "-m", "app.workers.anomaly_detector"]
+    volumes:
+      - ../microservicios/audit_service/app:/app/app
+    environment:
+      - ENVIRONMENT=development
+      - POSTGRES_SERVER=postgres_audit
+      - POSTGRES_USER=${AUDIT_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${AUDIT_DB_PASSWORD:-secret}
+      - POSTGRES_DB=${AUDIT_DB_NAME:-audit_db}
+      - REDIS_SERVER=redis_audit
+      - REDIS_PORT=6379
+      - SECRET_KEY=dev_secret_key_123
+      - OLLAMA_SERVER=ollama_audit
+      - OLLAMA_PORT=11434
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+    env_file:
+      - ../microservicios/audit_service/.env
+    depends_on:
+      redis_audit:
+        condition: service_healthy
+      postgres_audit:
+        condition: service_healthy
+      ollama_audit:
+        condition: service_started
+    profiles:
+      - audit
+      - all
+
+  # ============================================================================
+  # REPORT SERVICE
+  # ============================================================================
+  reports_db:
+    image: postgres:16-alpine
+    container_name: isa_reports_db
+    environment:
+      - POSTGRES_USER=${REPORTS_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${REPORTS_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${REPORTS_DB_NAME:-isa_db}
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    command: postgres -c shared_buffers=256MB -c wal_level=replica
+    ports:
+      - "5434:5432"
+    volumes:
+      - reports_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - reports
+      - all
+
+  reports_redis:
+    image: redis:7-alpine
+    container_name: isa_reports_redis
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - reports
+      - all
+
+  reports_qdrant:
+    image: qdrant/qdrant
+    container_name: isa_reports_qdrant
+    ports:
+      - "6334:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    profiles:
+      - reports
+      - all
+
+  ollama_reports:
+    image: ollama/ollama:latest
+    container_name: isa_reports_ollama
+    ports:
+      - "11436:11434"
+    volumes:
+      - ollama_reports_models:/root/.ollama
+    entrypoint: >
+      /bin/sh -c "
+      ollama serve &
+      sleep 5 &&
+      ollama pull nomic-embed-text &&
+      ollama run phi3 &
+      wait"
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    profiles:
+      - reports
+      - all
+
+  minio:
+    image: minio/minio:latest
+    container_name: isa_reports_minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9003:9000"
+      - "9004:9001"
+    volumes:
+      - minio_data:/data
+    profiles:
+      - reports
+      - all
+
+  minio_setup:
+    image: minio/mc:latest
+    container_name: isa_reports_minio_setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/reports --ignore-existing;
+      mc ilm rule add --expire-days 1 myminio/reports;
+      exit 0;
+      "
+    profiles:
+      - reports
+      - all
+
+  reports_service:
+    build:
+      context: ../microservicios/report_service
+      dockerfile: Dockerfile
+    container_name: isa_reports_api
+    restart: unless-stopped
+    env_file:
+      - ../microservicios/report_service/.env
+    environment:
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - BACKEND_API_URL=http://backend:8000
+      - MS3_S3_PUBLIC_ENDPOINT=http://localhost:9003
+      - BACKEND_INTERNAL_TOKEN=${BACKEND_INTERNAL_TOKEN}
+    volumes:
+      - ../microservicios/report_service/app:/srv/report_service/app
+      - ../microservicios/report_service/tests:/srv/report_service/tests
+    ports:
+      - "8003:8003"
+    depends_on:
+      reports_redis:
+        condition: service_healthy
+      reports_db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    profiles:
+      - reports
+      - all
+
+  reports_worker:
+    build:
+      context: ../microservicios/report_service
+      dockerfile: Dockerfile
+    container_name: isa_reports_worker
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info"]
+    stop_grace_period: 5m
+    restart: unless-stopped
+    env_file:
+      - ../microservicios/report_service/.env
+    environment:
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - BACKEND_API_URL=http://backend:8000
+      - MS3_S3_PUBLIC_ENDPOINT=http://localhost:9003
+      - BACKEND_INTERNAL_TOKEN=${BACKEND_INTERNAL_TOKEN}
+    volumes:
+      - ../microservicios/report_service/app:/srv/report_service/app
+      - reports_static:/srv/ms3_reports/static
+    depends_on:
+      reports_redis:
+        condition: service_healthy
+      ollama_reports:
+        condition: service_started
+      reports_qdrant:
+        condition: service_started
+      minio:
+        condition: service_started
+    profiles:
+      - reports
+      - all
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: isa_prometheus
+    volumes:
+      - ../microservicios/report_service/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../microservicios/report_service/prometheus/alerts.yml:/etc/prometheus/alerts.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9092:9090"
+    profiles:
+      - reports
+      - all
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: isa_alertmanager
+    volumes:
+      - ../microservicios/report_service/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    ports:
+      - "9094:9093"
+    profiles:
+      - reports
+      - all
+
+# ============================================================================
+# BONUS SERVICE
+# ============================================================================
+  bonus_api:
+    build:
+      context: ./bonus_service  # <-- CAMBIADO: Antes decía ../bonus_service
+      dockerfile: Dockerfile
+      target: production
+    container_name: bonus_api
+    ports:
+      - "8004:8002"
+    env_file: ./bonus_service/.env  # <-- CAMBIADO: Antes decía ../bonus_service/.env
+    environment:
+      - REDIS_URL=redis://bonus_redis:6379/0
+      - BACKEND_API_URL=http://backend:8000
+    # ... El resto de sub-etiquetas de bonus_api quedan igual ...
+
+  bonus_celery_worker:
+    build:
+      context: ./bonus_service  # <-- CAMBIADO: Antes decía ../bonus_service
+      dockerfile: Dockerfile
+      target: production
+    container_name: bonus_celery_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+    env_file: ./bonus_service/.env  # <-- CAMBIADO: Antes decía ../bonus_service/.env
+    # ... El resto de sub-etiquetas de bonus_celery_worker quedan igual ...
+
+  bonus_redis:
+    # ... Este bloque queda exactamente igual ...
+
+
+# ==============================================================================
+# VOLUMES
+# ==============================================================================
+volumes:
+  approval_pg_data:
+  pg_audit_data:
+  ollama_models:
+  reports_pg_data:
+  qdrant_data:
+  ollama_reports_models:
+  minio_data:
+  reports_static:
+  prometheus_data:
